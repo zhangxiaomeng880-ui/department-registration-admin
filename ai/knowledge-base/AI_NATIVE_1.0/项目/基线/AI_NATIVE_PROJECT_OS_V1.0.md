@@ -6,12 +6,12 @@
 
 ## 0. V1.0 知识库结构与唯一事实来源
 
-本文件是 `ai/knowledge-base/v1.0/` 的**核心源知识库**，用于记录本项目 AI Native 运行机制、已确认规则、关键决策和可复用原则。
+本文件是 `ai/knowledge-base/AI_NATIVE_1.0/知识库/` 的**核心源知识库**，用于记录本项目 AI Native 运行机制、已确认规则、关键决策和可复用原则。
 
 - `AI_NATIVE_PROJECT_OS_V1.0.md`：核心源知识库，AI 执行时优先读取
-- `PROJECT_DIRECTORY_NOTE.md`：Git 项目目录说明，仅保留目录归属与导航信息，不重复业务规则
-- `project-evolution/`：记录本项目如何从实际问题逐步演进到当前完整 AI Native 流程，不替代当前规则
-- `decisions/`：记录单个关键决策及其依据、影响和生命周期
+- `AI_NATIVE_1.0/项目/项目文档/PROJECT_DIRECTORY_NOTE.md`：Git 项目目录说明，仅保留目录归属与导航信息，不重复业务规则
+- `AI_NATIVE_1.0/项目/迭代/历史演进/`：记录本项目如何从实际问题逐步演进到当前完整 AI Native 流程，不替代当前规则
+- `AI_NATIVE_1.0/项目/决策/`：记录单个关键决策及其依据、影响和生命周期
 - 迭代总结文档：面向项目成员阅读的交付物，不作为 AI 的第二事实来源
 
 后续如其他文档与本文件存在重复：**以本文件为准**；新增规则应回写本文件，避免同一规则在多个文件中维护不同版本。
@@ -308,71 +308,18 @@ Git 已经承担项目资产、版本和部分项目管理工作；Project Hub �
 
 ### 待建设
 
-- 用户反馈入口
-- 自动 Trigger 的完整实现
-- 更高等级的 AI 自动执行
-- 自动验证与回滚的完整实现
-- 自动化能力地图的完整统计
+- 用户反馈正式入口
+- 更完整的自动化 Workflow / Agent
+- 自动验证与自动回滚
+- 更完整的能力地图数据
+- 更完整的效率与 ROI 数据
 
-### 当前原则
+## 19. 当前执行边界
 
-**先跑通 → 记录真实运行数据 → 发现问题 → 迭代机制 → 再复用。**
+V1.0 运行机制以实际项目验证为主；未在项目中验证的能力不得标记为已完成。所有新增规则、重大调整和关键决策必须进入对应项目文档，并回写核心源知识库。
 
-不要为了追求体系完整而提前建设尚未被真实项目验证的能力。
+## 20. 当前目录与历史路径映射说明
 
-## 19. Project Evolution：完整演进过程
+本文件原先位于 `ai/knowledge-base/v1.0/`。当前有效归属为 `ai/knowledge-base/AI_NATIVE_1.0/项目/基线/`。
 
-本项目需要保留“我们如何从实际问题逐步形成完整 AI Native 流程”的演进记录。这里记录的是**可审计的项目思考、问题发现、方案演进和决策过程**，不是模型隐藏的 Chain-of-Thought。
-
-完整过程单独记录于：
-
-`ai/knowledge-base/v1.0/project-evolution/EVOLUTION-001-AI-NATIVE-PROJECT-FLOW.md`
-
-演进主线：
-
-**Git 项目资产 → 项目目录结构 → 项目层级 → Product/Design/Engineering/QA → 人员与时间 → 效率衡量 → Knowledge Base → 知识自闭环 → 项目复用 → 竞品/数据/KPI 持续驱动 → 用户反馈待建设 → 自动化自闭环 → Trigger → AI 分析 → Human Gate → AI 执行 → 自动验证 → 回滚/重试 → Knowledge Update → 能力持续进化。**
-
-Project Evolution 与当前规则的关系：
-
-- Evolution 回答“**我们怎么走到这里**”
-- Decision Log 回答“**某个关键节点为什么这样决定**”
-- 本文件回答“**当前应该怎么运行**”
-
-三者互补，但**当前规则仍以本文件为唯一事实来源**。
-
-## 20. Project Context Persistence / 项目上下文持久化规则
-
-Project Context 是**项目生命周期级上下文**，不是某个 Stage 的临时 Input。Project Initialization 负责创建/刷新 Project Context；后续所有 Agent 必须优先复用它。
-
-### 20.1 Input Source Priority
-
-Agent 执行阶段输入按以下优先级解析：
-
-1. **Project Context**：项目名称、目标、范围、版本、仓库、分支、运行环境、Workspace 等已确认基础信息。
-2. **Previous Stage Output**：上游阶段已经确认并交付的结果。
-3. **Knowledge Base**：已沉淀且适用的规则、决策、经验和模板。
-4. **User Input**：仅用于补充前三层仍缺失的必要信息，或明确覆盖已有值。
-
-### 20.2 Context Reuse Rule
-
-任何 Agent 在向用户询问前，必须先检查 Project Context、Previous Stage Output 和 Knowledge Base。已存在且仍有效的信息不得重复询问。
-
-用户明确修改某项信息时，以本次明确输入为最新值，并同步更新 Project Context 与相关记录。
-
-### 20.3 Missing Input Rule
-
-只有在缺失信息属于当前阶段的 **Required Input** 且无法从已有资产解析时，才允许请求补充。非阻塞缺失不得阻断已具备条件的工作。
-
-### 20.4 Resume / Handoff Rule
-
-`继续 [Stage]`、阶段切换和 Agent Handoff 均必须恢复已有 Project Context，不要求用户重新提供已经确认的项目基础信息。
-
-### 20.5 Execution Continuity Rule
-
-同一问题如果第一次无法解决，应明确记录 Blocked 原因和缺失项；不得通过重复询问相同信息形成循环。连续阻塞应触发 Review / Evolution 记录，并沉淀为 Knowledge Rule。
-
-### 20.6 Persistence Requirement
-
-凡本轮新确认的项目级信息、阶段状态、关键决策和执行结果，应在阶段完成后写回对应项目资产，使下一轮 Agent 可以直接复用。
-
-本规则来源：`EVOLUTION-010-PROJECT-CONTEXT-PERSISTENCE.md`、`EVOLUTION-011-EXECUTION-CONTINUITY-REVIEW.md`。
+历史路径仅作为迁移溯源保留，不代表当前有效目录。当前知识库根级项目概述目录为 `ai/knowledge-base/项目概述/`；1.0 与 2.0 分别在各自版本目录下维护独立的项目空间与知识库。
