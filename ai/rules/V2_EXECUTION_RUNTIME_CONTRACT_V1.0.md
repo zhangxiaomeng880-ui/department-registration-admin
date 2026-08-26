@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-把 V2.0 方法论落为可机器执行的 Runtime Contract。该 Contract 不重新定义 Product / Design / Engineering / QA 等专业规则，而统一规定：Trigger、Readiness、State、Execution、Quality、Audit、Handoff、Resume、Recovery、Persistence。
+把 V2.0 方法论落为可机器执行的 Runtime Contract。该 Contract 不重新定义 Product / Design / Engineering / QA 等专业规则，而统一规定：Trigger、Context、Readiness、State、Execution、Quality、Audit、Handoff、Resume、Recovery、Persistence。
 
 ## 2. Canonical Execution Chain
 
@@ -10,6 +10,10 @@
 Trigger
 ↓
 Project Context Load
+↓
+Context Retrieval / RAG（按任务需要）
+↓
+Context Validation / Assembly
 ↓
 Stage / Phase Routing
 ↓
@@ -40,13 +44,15 @@ Next-Phase Readiness
 Human Gate / Authorized Auto Progression
 ```
 
-任何自动化能力必须进入该链路，不得绕过 Gate、Audit 或 Evidence 持久化。
+任何自动化能力必须进入该链路，不得绕过 Gate、Audit、Context Contract 或 Evidence 持久化。
 
 ## 3. Runtime Components
 
 必须由统一 Runtime 管理：
 
 - Project Context
+- Context Retrieval / RAG Capability
+- Context Assembly / Validation
 - Project / Stage / Phase State
 - Trigger Router
 - Process Agent Router
@@ -66,21 +72,25 @@ Human Gate / Authorized Auto Progression
 
 这些属于 Runtime，不新增业务 Agent。
 
-## 4. Readiness
+## 4. Context and Readiness
 
 执行前必须检查：
 
 - Project / Version / Stage / Phase 是否正确；
 - 必需 Input 是否存在；
-- Input 是否通过完整性、有效性、一致性、新鲜度、来源、可执行性检查；
+- 是否需要 Context Retrieval；
+- Required Context 是否已检索、验证和组装；
+- Input / Context 是否通过完整性、有效性、一致性、新鲜度、来源、可执行性检查；
 - 依赖的 Rule / Contract / Capability 是否存在且为有效版本；
 - 必需权限、Repository、Branch、Preview、工具和资源是否可用；
 - 是否存在未解决的阻塞项。
 
-缺失关键输入：`WAITING_FOR_INPUT`。
-需要用户做业务选择：`USER_DECISION_REQUIRED`。
+关键规则或资产缺失：`WAITING_FOR_INPUT` 或 `BLOCKED`。
+需要用户做业务选择或存在无法自动消解的来源冲突：`USER_DECISION_REQUIRED`。
 系统依赖未满足：`BLOCKED`。
 不得通过猜测补齐关键事实。
+
+当任务不依赖外部知识、历史资产或项目上下文时，可以记录 `RETRIEVAL_NOT_REQUIRED`，但仍必须完成 Project Context、Permission、Rule 和 Input Readiness。
 
 ## 5. State Machine
 
@@ -113,7 +123,7 @@ Human Gate / Authorized Auto Progression
 
 Trigger 统一执行：
 
-`Resolve Target → Load Context → Readiness → Route → Execute → Verify → Persist → Notify`。
+`Resolve Target → Load Context → Retrieve / Assemble Context → Readiness → Route → Execute → Verify → Persist → Notify`。
 
 阶段完成后自动产生 `NEXT_PHASE_READY` 事件，但新的业务阶段默认必须经过 Human Gate；只有 Project Rule 明确允许时才可自动推进。
 
@@ -165,6 +175,7 @@ Quality Gate 与 Independent Audit Gate 分离。
 - missing input
 - blocker
 - last valid Artifact / Commit / Version
+- last valid Context / Retrieval Result
 - next legal action
 - retry count
 - last error / evidence
@@ -181,9 +192,9 @@ Quality Gate 与 Independent Audit Gate 分离。
 
 每次有效执行必须至少持久化：
 
-`Input → Decision → Execution → Output → Verification → State → Evidence → Handoff`
+`Input → Retrieval Decision → Context → Decision → Execution → Output → Verification → State → Evidence → Handoff`
 
-执行日志与业务 Artifact 分离。
+执行日志、Retrieval Evidence 与业务 Artifact 分离，但三者必须通过关联 ID 可追溯。
 
 ## 11. Auto Progression Policy
 
@@ -196,26 +207,28 @@ Quality Gate 与 Independent Audit Gate 分离。
 ## 12. Failure Semantics
 
 - `PARTIAL`：核心执行可用，但有非阻塞缺口；必须列明。
-- `BLOCKED`：关键依赖或证据缺失，不能继续。
+- `BLOCKED`：关键依赖、关键 Context 或证据缺失，不能继续。
 - `FAILED`：执行未达到目标，需要修复 / 重试。
 - `AUDIT_FAIL`：独立审计发现阻塞问题，不得标记阶段完成。
+- `RETRIEVAL_EMPTY`：未检索到候选 Context；只有在任务允许无历史 / 外部 Context 时才能继续。
 
 任何失败都不得被自动降级为 PASS。
 
 ## 13. Change Impact
 
-发生 Product / Design / Engineering / Data / QA / A-B / Release / Rule 变化时，Runtime 必须识别受影响的上下游资产、Phase Output、Handoff、Tests、Knowledge 和 Audit，并生成 Change Impact Record。
+发生 Product / Design / Engineering / Data / QA / A-B / Release / Rule / Context 变化时，Runtime 必须识别受影响的上下游资产、Phase Output、Handoff、Tests、Knowledge、Retrieval Context 和 Audit，并生成 Change Impact Record。
 
 ## 14. Completion Definition
 
 只有满足以下条件，Runtime 才能写入 `PHASE_COMPLETED`：
 
 1. Required Input 已验证；
-2. Process Agent 已执行；
-3. Phase Output 已生成并版本化；
-4. Quality Gate 通过；
-5. Required Audit 通过；
-6. Evidence 可追溯；
-7. Handoff 已生成；
-8. State 已持久化；
-9. 无未声明的 blocking issue。
+2. 必需 Context 已验证，或明确记录 `RETRIEVAL_NOT_REQUIRED`；
+3. Process Agent 已执行；
+4. Phase Output 已生成并版本化；
+5. Quality Gate 通过；
+6. Required Audit 通过；
+7. Evidence 可追溯；
+8. Handoff 已生成；
+9. State 已持久化；
+10. 无未声明的 blocking issue。
