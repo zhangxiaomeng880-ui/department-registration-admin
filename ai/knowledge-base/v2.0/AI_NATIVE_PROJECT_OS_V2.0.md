@@ -33,7 +33,7 @@ User、Organization、Role、Permission、Workspace、Credential。权限横向�
 
 标准 Resource：Project、Requirement、Phase、Milestone、Task、Issue、Asset、Data、Report。
 
-Asset 承载 Design、Code、Test、Knowledge 等项目资产；Data 独立承载 Project、Execution、Model Usage、Routing、Test、Issue、Metric、Audit/Trace 等数据资产。所有 Resource 遵循统一 Resource Contract、Lifecycle、Relationship、Version、Permission。
+Asset 承载 Design、Code、Test、Knowledge 等项目资产；Data 独立承载 Project、Execution、Model Usage、Routing、Test、Issue、Metric、Audit/Trace、Retrieval / Context 等数据资产。所有 Resource 遵循统一 Resource Contract、Lifecycle、Relationship、Version、Permission。
 
 ### Capability System
 
@@ -44,6 +44,8 @@ Context Assembly
 Action
 ```
 
+Retrieval / Context Assembly 是统一 Context Capability；RAG（Retrieval-Augmented Generation）是其可选实现方式，不新增业务 Agent。
+
 Action 标准：Create、Update、Execute、Publish、Terminate、Delete。具体 Resource 是否支持某 Action，由 Resource Contract + Lifecycle + Action Policy + Permission 决定。
 
 ### Execution System
@@ -52,7 +54,7 @@ Trigger、Minimum Executable Unit (MEU)、Agent、Workflow / Composition。MEU �
 
 ### Runtime Capability Pool
 
-统一管理 Model、Tool、MCP、Skill。四类能力均可注册、查询、调用、执行、版本化、授权、追踪和审计；用户自定义 MCP / Skill 使用统一 Contract 接入。
+统一管理 Model、Tool、MCP、Skill、Context Retrieval / RAG Capability。各类能力均可注册、查询、调用、执行、版本化、授权、追踪和审计；用户自定义 MCP / Skill 使用统一 Contract 接入。
 
 ### Model Management
 
@@ -75,13 +77,15 @@ Validation、Audit、Gate、Trace、Data Asset。各阶段自动化 Audit 逐步
 ## 3. 全链路执行
 
 ```text
-User → Permission → Resource/Task → Trigger → Agent/Composition
-→ Context Retrieval → Capability Selection
+User → Permission → Resource/Task → Trigger → Project Context Load
+→ Context Retrieval / RAG（按任务需要）
+→ Context Validation / Assembly
+→ Agent/Composition → Capability Selection
 → Model/Tool/MCP/Skill → Routing → Execution
 → Validation → Audit → Trace/Data Asset → Output
 ```
 
-每个阶段、任务、能力必须记录 Input、Output、Execution，以及实际调用的 Agent / Model / Tool / MCP / Skill、Token、Cost、Latency、问题、解决情况和产出地址。阶段输出是下一阶段输入的主要来源。
+每个阶段、任务、能力必须记录 Input、Output、Execution，以及实际调用的 Agent / Model / Tool / MCP / Skill、Retrieval / Context、Token、Cost、Latency、问题、解决情况和产出地址。阶段输出是下一阶段输入的主要来源。
 
 ## 4. Project Management
 
@@ -114,7 +118,7 @@ Project Template → Planning Engine → Milestone/Phase/Task/Dependency/Schedul
 - Clone：复制成独立资源
 - Fork：派生版本/分支
 
-引用不等于复制。
+引用不等于复制。Reuse-first 的资源发现统一通过 Query / Retrieval，并受 Permission、Version、Status、Relationship 约束。
 
 ## 8. AI Asset Tree
 
@@ -136,7 +140,7 @@ Project
 
 ## 9. 数据资产
 
-工作量、自然周期、实际工作耗时、等待耗时、问题数量、解决情况、返工、变更、模型调用、Token、成本、延迟、Tool/MCP 调用、Routing Decision、Audit、Test Execution、发布结果等均属于项目数据资产，可被 Query、Retrieval、Analytics、Report、Routing 和复盘消费。
+工作量、自然周期、实际工作耗时、等待耗时、问题数量、解决情况、返工、变更、模型调用、Token、成本、延迟、Tool/MCP 调用、Routing Decision、Retrieval、Context Assembly、Audit、Test Execution、发布结果等均属于项目数据资产，可被 Query、Retrieval、Analytics、Report、Routing 和复盘消费。
 
 ## 10. API / SDK
 
@@ -151,6 +155,7 @@ Trigger Contract
 Runtime Contract
 Routing Contract
 Governance Contract
+Context Retrieval Contract
         ↓
 API → SDK → Agent / Workflow / Project / External System
 ```
@@ -172,23 +177,25 @@ V1.0 的项目实践推动以下标准化：
 9. 项目计划由配置生成，并提供 Confidence。
 10. Audit 作为结构化能力替代分散评审。
 11. 阶段 Input / Output / Execution、调用和消耗全部进入数据资产。
-12. 新增业务通过标准 Contract 扩展，不重新设计底层能力。
+12. Context Retrieval / RAG 成为执行时发现和组装有效项目 / 规则 / 知识上下文的标准能力，但不新增业务 Agent。
+13. 新增业务通过标准 Contract 扩展，不重新设计底层能力。
 
 ## 12. PASS 与落地边界
 
 ### Foundation PASS
 
-Foundation Domains、Resource、Capability、Action、Execution、Runtime Capability Pool、User/Permission、Model Pool、Routing、Trigger、MEU、Audit、Trace、Template-first、Reuse-first、AI Asset Tree、Planning/Confidence 原则、API/SDK 标准化方向均 PASS。
+Foundation Domains、Resource、Capability、Action、Execution、Runtime Capability Pool、User/Permission、Model Pool、Routing、Trigger、MEU、Audit、Trace、Context Retrieval / Context Assembly、Template-first、Reuse-first、AI Asset Tree、Planning/Confidence 原则、API/SDK 标准化方向均 PASS。
 
 ### 后续落地
 
-API/OpenAPI/Schema、SDK、Resource/Capability Registry、Runtime Adapter、Model Provider Adapter、Tool/MCP/Skill Registry、Routing Engine、Planning Engine、自动化验证以及可视化 Control Center 属于实现阶段，不反向改变已 PASS 的基础抽象。
+API/OpenAPI/Schema、SDK、Resource/Capability Registry、Runtime Adapter、Model Provider Adapter、Tool/MCP/Skill Registry、Retrieval / RAG Adapter、Reranker、Embedding Provider、Routing Engine、Planning Engine、自动化验证以及可视化 Control Center 属于实现阶段，不反向改变已 PASS 的基础抽象。
 
 ## 13. V2.0 执行层基线（已补齐）
 
 V2.0 Foundation 现在通过以下 Contract 收束为可执行 Runtime：
 
 - `ai/rules/V2_EXECUTION_RUNTIME_CONTRACT_V1.0.md`
+- `ai/rules/CONTEXT_RETRIEVAL_CONTRACT_V1.0.md`
 - `ai/rules/AUDIT_INDEPENDENCE_CONTRACT_V1.0.md`
 - `ai/rules/EXECUTION_EVIDENCE_CONTRACT_V1.0.md`
 - `ai/rules/RESUME_RECOVERY_CONTRACT_V1.0.md`
@@ -197,8 +204,11 @@ V2.0 Foundation 现在通过以下 Contract 收束为可执行 Runtime：
 
 ```text
 Trigger
-→ Context Readiness
-→ Routing
+→ Project Context Load
+→ Context Retrieval / RAG（按任务需要）
+→ Context Validation / Assembly
+→ Stage / Phase Routing
+→ Input Readiness
 → Process Agent
 → Capability Selection
 → Execution
@@ -211,7 +221,7 @@ Trigger
 → Human Gate / Authorized Auto Progression
 ```
 
-阶段完成现在必须同时满足：Required Input Ready、Process Agent Complete、Phase Output Versioned、Quality PASS、Independent Audit PASS、Evidence Trace Complete、Handoff Created、State Persisted、No Blocking Issue。
+阶段完成现在必须同时满足：Required Input Ready、Required Context Ready（或 `RETRIEVAL_NOT_REQUIRED`）、Process Agent Complete、Phase Output Versioned、Quality PASS、Independent Audit PASS、Evidence Trace Complete、Handoff Created、State Persisted、No Blocking Issue。
 
 异常状态统一进入 WAITING_FOR_INPUT / USER_DECISION_REQUIRED / BLOCKED / FAILED / PAUSED 等状态，并必须保存 Resume Point；恢复时不得重新执行已验证的上游结果。
 
