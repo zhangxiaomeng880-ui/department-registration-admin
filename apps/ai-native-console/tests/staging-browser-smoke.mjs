@@ -36,6 +36,24 @@ try{
    assert.equal(routed.status(),200);
    await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
    assert.equal(await page.locator('#workspace').isVisible(),false);
+   // These are actual deployed HTML route responses, not a claim of access to private project data.
+   for(const route of [
+     '/projects','/capabilities','/knowledge',
+     '/projects/00000000-0000-4000-8000-000000000999/overview',
+     '/projects/00000000-0000-4000-8000-000000000999/tasks',
+     '/projects/00000000-0000-4000-8000-000000000999/assets',
+     '/projects/00000000-0000-4000-8000-000000000999/data',
+     '/projects/00000000-0000-4000-8000-000000000999/stages',
+     '/projects/00000000-0000-4000-8000-000000000999/audit',
+     '/projects/00000000-0000-4000-8000-000000000999/tasks/00000000-0000-4000-8000-000000000777',
+     '/projects/00000000-0000-4000-8000-000000000999/assets/00000000-0000-4000-8000-000000000666'
+   ]){
+     const response=await page.goto(url+route,{waitUntil:'domcontentloaded',timeout:30000});
+     assert.equal(response.status(),200,route+' must be a routed shell');
+     await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
+     assert.equal(await page.locator('#workspace').isVisible(),false);
+   }
+   console.log('STAGING_MULTIPAGE_DEEP_LINK_PASS: all 11 routed shells, authenticated data blocked without login');
    console.log('STAGING_BROWSER_LOGIN_SHELL_PASS viewport='+viewport.width+'x'+viewport.height+' real_https=true writes=false');
   }finally{await page.close();}
  }
