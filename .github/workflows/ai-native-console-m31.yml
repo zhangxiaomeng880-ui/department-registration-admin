@@ -1,0 +1,25 @@
+name: AI Native Console M31
+on:
+  push:
+    branches: [feat/ai-native-console-real-binding-m31]
+    paths: [".github/workflows/ai-native-console-m31.yml", "apps/ai-native-console/**"]
+  pull_request:
+    paths: [".github/workflows/ai-native-console-m31.yml", "apps/ai-native-console/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  console-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and no-mock isolated contract tests
+        working-directory: apps/ai-native-console
+        run: npm run check
+      - name: Fail if demo or browser storage introduced
+        run: |
+          if grep -En "mockData|localStorage|sessionStorage|window[.]RUNTIME_API_TOKEN" apps/ai-native-console/public/app.js; then exit 1; fi
