@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Native 2.0 · 工作台</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header class="top">
+  <a class="brand" href="/projects" data-nav><span class="brandmark">A<span>·</span>N</span><span><strong>AI Native <em>2.0</em></strong><small>统一项目工作台</small></span></a>
+  <div class="head-right"><span class="pill">STAGING · FRONTEND GATE 未通过</span><button id="logout" class="ghost" hidden>退出</button></div>
+</header>
+<section id="login" class="login">
+  <div class="login-card"><div class="eyebrow">SECURE WORKSPACE</div><h1>连接你的真实项目</h1>
+    <p>数据由 Runtime 提供。工作台不生成模拟项目，也不会把浏览器本地状态作为业务事实。</p>
+    <form id="loginForm">
+      <label>访问方式<select id="loginMode" aria-label="访问方式"><option value="scoped">个人受限凭据（推荐）</option><option value="shared" hidden>预发共享验证（只读）</option></select></label>
+      <label><span id="loginSecretLabel">Runtime 受限凭据</span><input id="password" type="password" autocomplete="off" required></label>
+      <p id="loginHint" class="muted">仅在本次登录向服务端提交凭据，浏览器不存储 Token。</p>
+      <button class="primary full" type="submit">进入工作台 →</button>
+    </form><p id="loginError" class="error" role="alert"></p>
+  </div>
+</section>
+<div id="workspace" class="shell" hidden>
+  <aside class="side">
+    <div class="side-label">工作空间</div><select id="workspaceSelect" aria-label="选择工作空间"></select>
+    <div class="side-label lower">主导航</div>
+    <nav class="global-nav" aria-label="全局导航">
+      <a data-nav href="/projects" data-global="projects" class="nav-link">▦ <span>项目总览</span></a>
+      <a data-nav href="/capabilities" data-global="capabilities" class="nav-link">◈ <span>资源能力池</span></a>
+      <a data-nav href="/knowledge" data-global="knowledge" class="nav-link">▤ <span>知识库</span></a>
+    </nav>
+    <div class="side-foot"><span class="dot"></span> 真实数据 · Runtime / MySQL<br>无浏览器业务数据缓存</div>
+  </aside>
+  <main>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <section id="catalogScreen" class="page-screen" hidden>
+      <div class="mainhead"><div><div class="eyebrow">PROJECT PORTFOLIO</div><h1>项目总览</h1><p>选择一个项目进入它的独立工作空间</p></div>
+        <div class="head-actions"><button id="refresh" class="outline">↻ 刷新服务端</button><button id="newProject" class="primary">＋ 新建项目</button></div></div>
+      <div class="filters portfolio-filters"><button id="filterAll" class="filter active" data-type="">全部</button><button class="filter" data-type="PRODUCT_DEVELOPMENT">产品研发</button><button class="filter" data-type="AIGC_CONTENT">AIGC 内容</button></div>
+      <div id="projectList" class="catalog-list"></div>
+    </section>
+    <section id="capabilityScreen" class="page-screen" hidden>
+      <div class="mainhead"><div><div class="eyebrow">CAPABILITY REGISTRY</div><h1>资源能力池</h1><p>模型、工具、Skill、Agent 等能力；仅展示有权读取的真实注册记录</p></div></div>
+      <div class="panel"><div id="capabilityRows"></div></div>
+    </section>
+    <section id="knowledgeScreen" class="page-screen" hidden>
+      <div class="mainhead"><div><div class="eyebrow">KNOWLEDGE SOURCES</div><h1>知识库</h1><p>按项目查看真实知识源绑定；尚未接入全局文件打开服务</p></div></div>
+      <label class="domain-picker">选择项目<select id="knowledgeProject" aria-label="知识库所属项目"></select></label>
+      <div class="panel"><div id="knowledgeRows"></div></div>
+    </section>
+    <section id="projectScreen" class="page-screen" hidden>
+      <div class="backline"><a href="/projects" data-nav>← 项目列表</a></div>
+      <div class="mainhead"><div><div class="eyebrow">PROJECT WORKSPACE</div><h1 id="projectTitle">项目工作空间</h1><p id="projectMeta">读取中</p></div>
+        <button id="refreshProject" class="outline">↻ 刷新当前项目</button></div>
+      <div id="projectBody">
+        <div class="tabs" role="navigation" aria-label="项目内导航">
+          <a class="tab" data-nav data-panel="overview">概览</a>
+          <a class="tab" data-nav data-panel="tasks">任务</a>
+          <a class="tab" data-nav data-panel="assets">资产</a>
+          <a class="tab" data-nav data-panel="data">数据</a>
+          <a class="tab" data-nav data-panel="stages">阶段与 Gate</a>
+          <a class="tab" data-nav data-panel="audit">审计证据</a>
+        </div>
+        <section id="overview" class="panel" hidden>
+          <h2>项目概览</h2><p class="muted">所有状态、里程碑和任务数量均取自 Runtime。</p>
+          <div class="statgrid"><div class="stat"><label>项目状态</label><strong id="projectStatus">—</strong></div><div class="stat"><label>当前阶段</label><strong id="currentStage">—</strong></div><div class="stat"><label>工作流版本</label><strong id="workflowVersion">—</strong></div><div class="stat"><label>阶段总数</label><strong id="stageCount">—</strong></div></div>
+          <h2>真实里程碑</h2><div id="milestones"></div>
+        </section>
+        <section id="tasks" class="panel" hidden><h2>项目任务</h2><p class="muted">任务来自服务端 Governance，点击可进入可分享的任务详情页。</p><div id="taskRows"></div></section>
+        <section id="assets" class="panel" hidden>
+          <h2>项目资产</h2><p class="muted">使用正式资产与版本 ID；未验证文件提供商之前不提供虚假的打开按钮。</p>
+          <label class="domain-picker">阶段领域详情<select id="domainSelect" aria-label="读取阶段真实领域数据"></select></label>
+          <div id="modules"></div>
+        </section>
+        <section id="data" class="panel" hidden><h2>项目数据</h2><p class="muted">统计只基于实际接口返回的项目、任务、里程碑数据。</p><div id="dataRows"></div></section>
+        <section id="stages" class="panel" hidden><h2>阶段与 Gate</h2><p class="muted">工作流实例来自 Runtime，未绑定时明确显示未绑定。</p><div id="aigcStageCheck" class="stage-check" hidden><h3>AIGC 15 阶段结构验收</h3><p id="aigcStageCheckResult" role="status"></p><p class="muted">仅核对正式工作流实例，不替代单阶段 Gate、生成任务、发布或效果回收的真实验收。</p></div><div id="stageTable"></div><h2>阶段执行记录</h2><div id="transitions"></div></section>
+        <section id="audit" class="panel" hidden><h2>项目原始审计</h2><p class="muted">直接读取 Runtime audit_logs。</p><div id="liveAuditRows"></div>
+          <h2>工作空间审计索引</h2><p class="muted">M30 索引可能晚于原始记录。</p><div id="auditRows"></div>
+        </section>
+      </div>
+    </section>
+    <section id="detailScreen" class="page-screen" hidden>
+      <div class="backline"><a id="detailBack" href="/projects" data-nav>← 返回项目</a></div>
+      <div class="mainhead"><div><div class="eyebrow" id="detailCategory">DETAIL</div><h1 id="detailTitle">详情</h1><p id="detailMeta">真实服务端对象</p></div></div>
+      <div class="panel"><div id="detailRows"></div></div>
+    </section>
+  </main>
+</div>
+<dialog id="createDialog"><form id="createForm">
+  <div class="dlghead"><h2>创建真实项目</h2><button id="closeDialog" class="ghost" type="button">✕</button></div>
+  <p>将通过 Runtime API 写入数据库，不会只保存在浏览器。</p>
+  <label>项目名称<input id="createName" maxlength="120" required></label>
+  <label>项目 Key<input id="createKey" pattern="[A-Za-z0-9_-]{3,80}" placeholder="如 MY_AIGC_PROJECT" required></label>
+  <label>项目类型<select id="createType" required><option value="PRODUCT_DEVELOPMENT">产品研发</option><option value="AIGC_CONTENT">AIGC 内容生产</option></select></label>
+  <label>正式工作流预设<select id="createPreset"><option value="">不自动绑定</option></select></label>
+  <p id="createError" class="error" role="alert"></p><button class="primary full" type="submit">确认写入预发数据库</button>
+</form></dialog>
+<script type="module" src="/app.js"></script>
+</body></html>

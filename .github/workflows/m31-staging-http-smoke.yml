@@ -1,0 +1,23 @@
+name: M31 Staging HTTP Smoke
+on:
+  push:
+    branches: [feat/ai-native-console-real-binding-m31]
+    paths:
+      - ".github/workflows/m31-staging-http-smoke.yml"
+      - "apps/ai-native-console/tests/staging-http-smoke.mjs"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      CONSOLE_URL: https://ai-native-console-m31-staging.up.railway.app
+      RUNTIME_URL: https://runtime-staging-rc1-staging.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node apps/ai-native-console/tests/staging-http-smoke.mjs
