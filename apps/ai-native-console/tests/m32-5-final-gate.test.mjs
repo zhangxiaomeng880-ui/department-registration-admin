@@ -166,3 +166,21 @@ test('real candidate original hash cannot automatically become published Master 
  gate=evaluateM325Gate(m);
  assert.ok(gate.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
+
+test('author-confirmed published captioned visuals do not assert uploaded file byte identity or grant Review/Archive',()=>{
+ const a1=original.criterion19['C19-A1'];
+ assert.equal(a1.visualIdentityConfirmation.status,'PASS');
+ assert.equal(a1.visualIdentityConfirmation.mode,'HUMAN');
+ assert.equal(a1.visualIdentityConfirmation.scope,'CAPTIONED_VIDEO_VISUAL_CONTENT_MATCH_ONLY');
+ assert.equal(a1.visualIdentityConfirmation.literalAnswer,'是的');
+ assert.equal(a1.sourceCandidate.userConfirmedVisualMatch,true);
+ assert.equal(a1.sourceCandidate.userConfirmedExactPublishedBytes,false);
+ assert.equal(a1.exactSourceMp4Sha256,null);
+ assert.equal(a1.publishedSourceBinding,null);
+ assert.equal(a1.humanReviewAttestation,null);
+ assert.equal(a1.reviewArchive,null);
+ const gate=evaluateM325Gate(original);
+ assert.equal(gate.decision,'HOLD');
+ assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+});
