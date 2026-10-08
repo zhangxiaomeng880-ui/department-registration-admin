@@ -22,7 +22,7 @@ const readJson=async req=>{
 };
 const cookies=req=>Object.fromEntries((req.headers.cookie||'').split(';').map(s=>s.trim().split('=').slice(0,2)).filter(x=>x.length===2));
 const sameOrigin=req=>{
-  const origin=req.headers.origin;const host=req.headers['x-forwarded-host']||req.headers.host;
+  const origin=req.headers.origin;const host=req.headers.host;
   if(!origin||!host)return false;
   try{return new URL(origin).host===String(host).split(',')[0].trim()&&['https:','http:'].includes(new URL(origin).protocol);}catch{return false;}
 };
@@ -51,8 +51,9 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       if(req.method==='POST'&&path==='/auth/login'){
         const ip=String(req.headers['x-forwarded-for']||req.socket.remoteAddress||'unknown').split(',')[0].trim();
-        const f=failed.get(ip)||{count:0,until:0};
-        if(f.count>=5&&Date.now()<f.until)throw error('LOGIN_RATE_LIMITED',429);
+        const saved=failed.get(ip)||{count:0,until:0};
+        const f=Date.now()>=saved.until?{count:0,until:0}:saved;
+        if(f.count>=5)throw error('LOGIN_RATE_LIMITED',429);
         const body=await readJson(req);
         if(!equals(String(body.password||''),String(env.CONSOLE_ADMIN_PASSWORD))){
           failed.set(ip,{count:f.count+1,until:Date.now()+900000});throw error('INVALID_CREDENTIALS',401);
