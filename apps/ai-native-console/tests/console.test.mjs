@@ -8,7 +8,7 @@ const start=async(fetchImpl)=>{
  const url='http://127.0.0.1:'+server.address().port;
  return {server,url,close:()=>new Promise(r=>server.close(r))};
 };
-const fakeResponse=(body,status=200)=>({status,text:async()=>JSON.stringify(body)});
+const fakeResponse=(body,status=200)=>({status,ok:status>=200&&status<300,text:async()=>JSON.stringify(body),json:async()=>body});
 test('unauthorized browser cannot access Runtime proxy or arbitrary routes',async()=>{
  const a=await start(async()=>fakeResponse({data:[]}));
  try{
