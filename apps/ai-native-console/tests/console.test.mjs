@@ -211,3 +211,48 @@ test('scoped login rejects credentials missing project:read even when Runtime wo
   assert.equal((await login.json()).error,'SCOPED_READER_PERMISSIONS_REQUIRED');
  }finally{await a.close();}
 });
+
+test('file access is personal-scope only; exact binary route never leaks Runtime credential or provider URL',async()=>{
+ const projectId='11111111-1111-4111-8111-111111111111';
+ const assetId='22222222-2222-4222-8222-222222222222';
+ const versionId='33333333-3333-4333-8333-333333333333';
+ const path='/api/runtime/projects/'+projectId+'/assets/'+assetId+'/versions/'+versionId;
+ const file=new TextEncoder().encode('%PDF-1.7\nfixture data');
+ const calls=[];
+ const a=await start(async(u,o)=>{
+  calls.push({url:u,credential:o.headers.authorization});
+  if(u.endsWith('/me'))return fakeResponse({data:{
+   principalType:'SCOPED',platformAdmin:false,identityId:'user-with-read',
+   permissions:['workspace:read','project:read']
+  }});
+  if(u.endsWith('/workspaces'))return fakeResponse({data:[{id:'workspaceA'}]});
+  if(u.endsWith('/access'))return new Response(JSON.stringify({data:{
+   access:'READY',versionId,contentPath:path+'/content',mimeType:'application/pdf',sizeBytes:file.byteLength
+  }}),{status:200,headers:{'content-type':'application/json'}});
+  if(u.endsWith('/content'))return new Response(file,{status:200,headers:{
+   'content-type':'application/pdf','content-length':String(file.byteLength)
+  }});
+  throw Error('Unexpected URL '+u);
+ });
+ try{
+  const shared=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(shared.status,200);
+  const sharedCookie=shared.headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(a.url+path+'/access',{headers:{cookie:sharedCookie}})).status,403);
+  assert.equal((await fetch(a.url+path+'/content',{headers:{cookie:sharedCookie}})).status,403);
+  assert.equal(calls.length,0,'shared platform token cannot request private file routes');
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const grant=await fetch(a.url+path+'/access',{headers:{cookie}});
+  assert.equal(grant.status,200);
+  assert.equal((await grant.json()).data.access,'READY');
+  const download=await fetch(a.url+path+'/content',{headers:{cookie}});
+  assert.equal(download.status,200);
+  assert.equal(download.headers.get('content-type'),'application/pdf');
+  assert.equal(download.headers.get('content-disposition'),'attachment; filename="authorized-asset"');
+  assert.deepEqual(new Uint8Array(await download.arrayBuffer()),file);
+  assert.ok(calls.every(x=>x.credential==='Bearer '+scoped));
+  assert.ok(!JSON.stringify({response:download.headers,logins:calls.map(x=>x.url)}).includes('staging-secret'));
+ }finally{await a.close();}
+});
