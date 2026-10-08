@@ -21,6 +21,7 @@ test('per-user scoped credential delegates GET and write to Runtime, never uses 
  const observed=[];
  const a=await start(async(u,o)=>{
    observed.push({u,method:o.method,auth:o.headers.authorization,body:o.body});
+   if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'operator-001',permissions:['workspace:read','project:read','project:write']}});
    if(u.endsWith('/workspaces'))return fakeResponse({data:[{id:'w1'}]});
    if(o.method==='POST')return fakeResponse({data:{id:'project-real-uuid',name:'真实项目'}},201);
    return fakeResponse({data:{workspaceId:'w1',total:0,items:[]}});
@@ -43,7 +44,7 @@ test('per-user scoped credential delegates GET and write to Runtime, never uses 
   });
   assert.equal(create.status,201);
   assert.equal((await create.json()).data.id,'project-real-uuid');
-  assert.equal(observed.length,3);
+  assert.equal(observed.length,4);
   assert.ok(observed.every(x=>x.auth==='Bearer '+scoped));
   assert.ok(!JSON.stringify(await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json()).includes(scoped));
   assert.equal((await fetch(a.url+'/api/runtime/credits',{headers:{cookie}})).status,403);
@@ -73,8 +74,9 @@ test('shared staging access remains read-only even when global writes are enable
 });
 test('scoped credential revocation invalidates the browser session on next Runtime request',async()=>{
  let revoke=false;
- const a=await start(async()=>{
+ const a=await start(async(u)=>{
   if(revoke)return fakeResponse({error:'RUNTIME_CREDENTIAL_INACTIVE'},401);
+  if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'viewer-001',permissions:['workspace:read','project:read']}});
   return fakeResponse({data:[{id:'w1'}]});
  });
  try{
@@ -178,4 +180,34 @@ test('staging diagnostic fails closed on invalid Runtime auth',async()=>{
   assert.equal(body.error,'UPSTREAM_HTTP_401');
   assert.equal(body.checks.projectList,'BLOCKED');
  }finally{await new Promise(resolve=>s.close(resolve));}
+});
+
+test('read-only Runtime viewer cannot create a project even if server global writes are enabled',async()=>{
+ const calls=[];
+ const a=await start(async(u,o)=>{
+  calls.push({url:u,method:o.method});
+  if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'viewer-001',permissions:['workspace:read','project:read']}});
+  return fakeResponse({data:[{id:'w1'}]});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const s=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
+  assert.equal(s.mode,'scoped');assert.equal(s.writesEnabled,false);
+  const attempt=await fetch(a.url+'/api/runtime/projects',{method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},body:JSON.stringify({workspaceId:'w1',projectKey:'X1',name:'should fail',projectType:'AIGC_CONTENT'})});
+  assert.equal(attempt.status,403);
+  assert.equal(calls.length,2,'No mutation should reach Runtime without project:write');
+ }finally{await a.close();}
+});
+test('scoped login rejects credentials missing project:read even when Runtime workspaces are available',async()=>{
+ const a=await start(async(u)=>{
+  if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'viewer-002',permissions:['workspace:read']}});
+  return fakeResponse({data:[{id:'w1'}]});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,403);
+  assert.equal((await login.json()).error,'SCOPED_READER_PERMISSIONS_REQUIRED');
+ }finally{await a.close();}
 });
