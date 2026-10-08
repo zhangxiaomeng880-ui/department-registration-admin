@@ -8,7 +8,15 @@
     "userIdentifiedInternalAsset": "昨天，我梦到你了",
     "source": "C19_A1_XIAOHONGSHU_PUBLICATION_RECORD_2026-10-08_CURRENT.md",
     "publishedVideoSha256": null,
-    "publishedBytesMatched": false
+    "publishedBytesMatched": false,
+    "humanVisualIdentityConfirmation": {
+      "status": "PASS",
+      "basis": "Author replied '是的' to whether the actual Xiaohongshu publication was the captioned visual group.",
+      "scope": "VISUAL_SCENE_AND_CAPTION_ONLY",
+      "candidateFile": "kf01_tonight_v01.mp4",
+      "evidenceFile": "C19_A1_HUMAN_VISUAL_IDENTITY_CONFIRMATION_V1_CURRENT.md",
+      "confirmedOn": "2026-10-08"
+    }
   },
   "method": {
     "source": "User ChatGPT Library raw_file bytes",
@@ -29,8 +37,9 @@
       "videoCodec": "h264",
       "audioStreamCodec": "aac",
       "visualObservation": "Seaside woman; bottom text '昨天，我又梦到你了。' is visibly burned into frame",
-      "evidenceStatus": "STRONG_CANDIDATE_NOT_PROVEN_PUBLISHED_BYTES",
-      "caveat": "Text matches public note title and recorded 'title text'; actual upload file hash not observed, audio composition not verified"
+      "evidenceStatus": "HUMAN_CONFIRMED_VISUAL_MATCH__BYTE_IDENTITY_UNPROVEN",
+      "caveat": "Text matches public note title and recorded 'title text'; actual upload file hash not observed, audio composition not verified",
+      "humanPublishedVisualMatch": "PASS"
     },
     {
       "rank": 2,
@@ -44,7 +53,8 @@
       "audioStreamCodec": "aac",
       "visualObservation": "Same seaside woman composition with no bottom title text visible at sampled frames",
       "evidenceStatus": "RELATED_SOURCE_CANDIDATE_NOT_PROVEN_PUBLISHED_BYTES",
-      "caveat": "Likely micro-motion underlying shot, but source/derivative relation not proven"
+      "caveat": "Likely micro-motion underlying shot, but source/derivative relation not proven",
+      "humanPublishedVisualMatch": "NOT_MATCHING_PUBLISHED_CAPTIONED_VERSION"
     }
   ],
   "excludedByMetadataOrVisibleScene": [
@@ -77,9 +87,10 @@
     "publishedMasterArchive": "HOLD",
     "humanReview": "HOLD",
     "C19_A1": "HOLD",
-    "C19_A2": "HOLD"
+    "C19_A2": "HOLD",
+    "visualIdentityHuman": "PASS"
   },
-  "nextProof": "Obtain direct bytes of the originally uploaded MP4 or a creator-side upload file/version mapping and compare sha256 with candidate(s). Do not substitute platform-transcoded download hash for original upload hash.",
+  "nextProof": "Author confirmed the published captioned visual, not exact MP4 upload-byte identity; obtain uploader export/original source mapping before Archive SHA acceptance.",
   "actionsTaken": [
     "Materialized file bytes to an ephemeral isolated work folder",
     "Read-only ffprobe and SHA-256",
