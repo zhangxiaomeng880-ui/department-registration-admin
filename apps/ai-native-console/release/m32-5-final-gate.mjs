@@ -103,7 +103,7 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
  const file=new URL('./M32_5_EVIDENCE_V1_CURRENT.json',import.meta.url);
  const raw=JSON.parse(readFileSync(file,'utf8'));
- const result=evaluateM325Gate(raw);
+ const result=evaluateM325Gate(raw,{verifierPublicKey:process.env.M32_RELEASE_VERIFIER_PUBLIC_KEY||null});
  console.log(JSON.stringify(result,null,2));
  // Regular evidence refresh may remain HOLD, but --require-pass makes a
  // production promotion job fail closed without release evidence.
