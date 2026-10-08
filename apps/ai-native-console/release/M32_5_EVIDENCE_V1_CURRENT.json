@@ -134,7 +134,8 @@
     "Read-only freeze copy produced and sha256 checked identical to author-approved QA preview; ffmpeg complete decode exit 0; both historical A0 v0.2 variants have same AAC stream but distinct video bytes. This is a local handoff, not permanent archive or publication.",
     "Candidate A0 V0.2 archived create-only to Xiaohongshu channel adaptation Library and bytes read back SHA-256 matched. Not official published Master, nor permission to publish or A2 real outcome.",
     "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD.",
-    "2026-10-08: Reused persistent Library exact-match candidate and inspected official Copyright CURRENT policy: third-party/music clearance must be verified per external release; no authorized new publication. Prepublication Gate HOLD on rights and explicit approval; no reruns or file uploads."
+    "2026-10-08: Reused persistent Library exact-match candidate and inspected official Copyright CURRENT policy: third-party/music clearance must be verified per external release; no authorized new publication. Prepublication Gate HOLD on rights and explicit approval; no reruns or file uploads.",
+    "2026-10-08: Two-repository branch discovery admin 13 branches and runtime 133 branches. No separate M32.1–M32.4.4 named branch; source implementation still unverified, not proven absent. Branch source survey at M32_UPSTREAM_SOURCE_RECOVERY_V1_CURRENT.json."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -403,5 +404,15 @@
         "publicationApproved": false
       }
     }
+  },
+  "upstreamSourceRecovery": {
+    "status": "NAMED_REF_INVENTORY_COMPLETE__UPSTREAM_EVIDENCE_UNVERIFIED",
+    "evidenceFile": "M32_UPSTREAM_SOURCE_RECOVERY_V1_CURRENT.json",
+    "adminNamedM32Branches": [
+      "feat/ai-native-m32-5-final-release-gate"
+    ],
+    "runtimeNamedM32Branches": [],
+    "scope": "GitHub branch inventory and backend PR-title inventory; no inference that implementation cannot exist under another ref",
+    "productionMutation": false
   }
 }
