@@ -30,4 +30,11 @@ await check(runtimeUrl+'/ready',200,x=>{
 await check(runtimeUrl+'/api/runtime/projects?workspaceId=00000000-0000-4000-8000-000000000102',401,x=>{
  assert.equal(x.error,'RUNTIME_UNAUTHORIZED');
 });
-console.log('M31_STAGING_HTTP_SMOKE_PASS all=5; unauthenticated only; authenticated E2E NOT TESTED');
+await check(consoleUrl+'/healthz/runtime',200,x=>{
+ assert.equal(x.status,'ready');
+ assert.equal(x.checks?.authorizedWorkspaces,'PASS');
+ assert.equal(x.checks?.projectList,'PASS');
+ assert.ok(['PASS','NOT_APPLICABLE'].includes(x.checks?.lifecycle));
+ assert.ok(['PASS','NOT_APPLICABLE'].includes(x.checks?.primaryAudit));
+});
+console.log('M31_STAGING_HTTP_SMOKE_PASS all=6; server-credential authorized reads verified, browser mutation NOT TESTED');
