@@ -9,6 +9,7 @@ const env={
   RUNTIME_API_TOKEN:'local-test-runtime-token',
   RUNTIME_API_BASE_URL:'https://runtime.test.invalid',
   CONSOLE_ALLOW_WRITES:'false',
+  CONSOLE_ALLOW_SHARED_ADMIN_LOGIN:'true',
   NODE_ENV:'development'
 };
 const requests=[];
@@ -50,6 +51,7 @@ try{
  await page.goto(host+'/');
  await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
  assert.equal(await page.locator('#workspace').isVisible(),false);
+ await page.locator('#loginMode').selectOption('shared');
  await page.locator('#password').fill('local-playwright-password');
  await page.getByRole('button',{name:'进入工作台'}).click();
  await page.locator('#projectTitle').getByText('真实 API 形态样例（仅测试）').waitFor();
