@@ -222,3 +222,16 @@ test('AIGC real-world publication is independent of platform release readiness',
  assert.equal(split.businessAcceptance.decision,'HOLD');
  assert.ok(split.businessAcceptance.blockerCount>=3);
 });
+
+
+test('real C19 AIGC outcome is independently reported but cannot block a platform-only release',()=>{
+ const m=fakeOnly();
+ m.criterion19['C19-A1']={status:'HOLD'};
+ m.criterion19['C19-A2']={status:'HOLD'};
+ const result=evaluateM325Gate(m);
+ assert.deepEqual(result.blockers.map(b=>b.code),['EXTERNAL_ATTESTATION_REQUIRED']);
+ assert.equal(result.businessCriterion19.decision,'HOLD');
+ assert.ok(result.businessCriterion19.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(result.businessCriterion19.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+ assert.equal(result.blockers.some(b=>b.code.includes('C19')) ,false);
+});
