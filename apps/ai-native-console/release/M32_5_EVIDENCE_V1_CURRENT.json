@@ -120,7 +120,8 @@
     "This is an audit snapshot, not an authorization to deploy or publish.",
     "2026-10-08: Recovered CURRENT User Library C19 checkpoint; independent GitHub runs 37561607586 and 37712613211 success and Railway historical C19-P2 deployment observed REMOVED after replacement. Reuse P1/P2; no claim of current live Runtime row readback.",
     "M32.4.4 release trace was NOT found; recovered M31.5 exact SHA-to-GitHub-CI evidence is historical only, never counted as M32.4.4.",
-    "C19-A1 candidate byte hash measured directly on an actual Library MP4 and visual frames compared with the Oct 8 platform creator-analytics cover. Candidate is NOT confirmed byte-for-byte identical to the uploaded Xiaohongshu file. Do not populate exactSourceMp4Sha256, Review Archive or PASS from it."
+    "C19-A1 candidate byte hash measured directly on an actual Library MP4 and visual frames compared with the Oct 8 platform creator-analytics cover. Candidate is NOT confirmed byte-for-byte identical to the uploaded Xiaohongshu file. Do not populate exactSourceMp4Sha256, Review Archive or PASS from it.",
+    "C19-A1 source recovery: Materialized two real 12s raw MP4 candidate files and computed independent sha256; one has visible bottom title matching public note. Formal published source hash still null; human/provider proof required."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -192,6 +193,16 @@
         "publicPlatformByteHashVerified": false,
         "promotionsAllowed": false,
         "approvedAsPublishedMaster": false
+      },
+      "fileCandidateReview": {
+        "evidenceFile": "C19_A1_MP4_SOURCE_CANDIDATES_V1_CURRENT.json",
+        "exactCandidateHashesComputed": true,
+        "preferredMatchingCandidateFilename": "kf01_tonight_v01.mp4",
+        "preferredCandidateSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "relatedCandidateFilename": "KF01_jinwanbuganlu_micro_motion_v01.mp4",
+        "relatedCandidateSha256": "7af6e77a715ad712e183ef7486f16c0ffb63278750064aa7fa2fe3b91b6cfd54",
+        "actuallyPublishedSourceHashVerified": false,
+        "rationale": "Burned-in title text + 12s visual/audio match. Candidate hashes are real raw bytes, NOT a proof of uploaded exact bytes."
       }
     },
     "C19-A2": {
