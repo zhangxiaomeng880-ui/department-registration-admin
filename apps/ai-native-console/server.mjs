@@ -133,6 +133,12 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           return json(res,result.status,payload);
         }finally{clearTimeout(timeout);}
       }
+      // Addressable project pages: deep links and browser back/forward always
+      // load the same authenticated shell, never a fabricated project snapshot.
+      if(req.method==='GET'&&/^\\/projects\\/[A-Za-z0-9-]{1,64}\\/(stages|assets|audit)$/.test(path)){
+        const bytes=await readFile(join(root,'public','index.html'));
+        res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
+      }
       if(req.method==='GET'&&ASSETS[path]){
         const bytes=await readFile(join(root,'public',ASSETS[path]));
         res.writeHead(200,{...headers,'content-type':MIME[path]});return res.end(bytes);
