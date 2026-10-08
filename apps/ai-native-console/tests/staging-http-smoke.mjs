@@ -20,6 +20,7 @@ await check(consoleUrl+'/healthz',200,x=>{
 });
 await check(consoleUrl+'/auth/session',200,x=>{
  assert.equal(x.authenticated,false);assert.equal(x.writesEnabled,false);
+ assert.equal(x.mode,null);assert.equal(x.sharedLoginEnabled,true);
 });
 await check(consoleUrl+'/api/runtime/workspaces',401,x=>assert.equal(x.error,'CONSOLE_UNAUTHORIZED'));
 await check(runtimeUrl+'/ready',200,x=>{
@@ -30,11 +31,7 @@ await check(runtimeUrl+'/ready',200,x=>{
 await check(runtimeUrl+'/api/runtime/projects?workspaceId=00000000-0000-4000-8000-000000000102',401,x=>{
  assert.equal(x.error,'RUNTIME_UNAUTHORIZED');
 });
-await check(consoleUrl+'/healthz/runtime',200,x=>{
- assert.equal(x.status,'ready');
- assert.equal(x.checks?.authorizedWorkspaces,'PASS');
- assert.equal(x.checks?.projectList,'PASS');
- assert.ok(['PASS','NOT_APPLICABLE'].includes(x.checks?.lifecycle));
- assert.ok(['PASS','NOT_APPLICABLE'].includes(x.checks?.primaryAudit));
-});
-console.log('M31_STAGING_HTTP_SMOKE_PASS all=6; server-credential authorized reads verified, browser mutation NOT TESTED');
+await check(runtimeUrl+'/api/runtime/me',401,x=>assert.equal(x.error,'RUNTIME_UNAUTHORIZED'));
+await check(consoleUrl+'/healthz/runtime',404,x=>assert.equal(x.error,'NOT_FOUND'));
+
+console.log('M31_STAGING_HTTP_SMOKE_PASS all=7; scoped identity endpoint auth enforced; temporary probe disabled; browser write NOT TESTED');
