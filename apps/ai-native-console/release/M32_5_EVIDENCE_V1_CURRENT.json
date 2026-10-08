@@ -119,7 +119,8 @@
     "M31/M31.5 CI PASS is preserved and not rerun merely to establish M32 evidence.",
     "This is an audit snapshot, not an authorization to deploy or publish.",
     "2026-10-08: Recovered CURRENT User Library C19 checkpoint; independent GitHub runs 37561607586 and 37712613211 success and Railway historical C19-P2 deployment observed REMOVED after replacement. Reuse P1/P2; no claim of current live Runtime row readback.",
-    "M32.4.4 release trace was NOT found; recovered M31.5 exact SHA-to-GitHub-CI evidence is historical only, never counted as M32.4.4."
+    "M32.4.4 release trace was NOT found; recovered M31.5 exact SHA-to-GitHub-CI evidence is historical only, never counted as M32.4.4.",
+    "C19-A1 candidate byte hash measured directly on an actual Library MP4 and visual frames compared with the Oct 8 platform creator-analytics cover. Candidate is NOT confirmed byte-for-byte identical to the uploaded Xiaohongshu file. Do not populate exactSourceMp4Sha256, Review Archive or PASS from it."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -164,7 +165,7 @@
       "reexecute": false
     },
     "C19-A1": {
-      "status": "PARTIAL_PUBLISHED_AND_PERFORMANCE__HUMAN_REVIEW_HOLD",
+      "status": "SOURCE_CANDIDATE_HASH_VERIFIED__PUBLISHED_MASTER_UNCONFIRMED",
       "type": "REAL_AIGC_E2E",
       "proofFile": "C19_A1_XIAOHONGSHU_PUBLICATION_EVIDENCE_2026-10-08_CURRENT.md",
       "externalPublication": "CONFIRMED_BY_OWNER",
@@ -172,7 +173,26 @@
       "exactSourceMp4Sha256": null,
       "humanReviewAttestation": null,
       "reviewArchive": null,
-      "reexecutePublication": false
+      "reexecutePublication": false,
+      "sourceCandidate": {
+        "fileName": "kf01_tonight_v01.mp4",
+        "fileOrigin": "User Library original MP4 bytes (read-only materialization)",
+        "sha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "fileSizeBytes": 4011967,
+        "durationSeconds": 12,
+        "width": 1080,
+        "height": 1920,
+        "videoCodec": "h264",
+        "audioCodec": "aac",
+        "frameCount": 300,
+        "visualCrossCheck": "MATCHES_CREATOR_ANALYTICS_THUMBNAIL_SCENE__NIGHT_SEASIDE",
+        "overlayText": "昨天，我又梦到你了",
+        "confidence": "HIGH_CANDIDATE_NOT_BYTE_IDENTICAL_PUBLICATION_PROOF",
+        "userConfirmedExactPublishedBytes": false,
+        "publicPlatformByteHashVerified": false,
+        "promotionsAllowed": false,
+        "approvedAsPublishedMaster": false
+      }
     },
     "C19-A2": {
       "status": "HOLD",
