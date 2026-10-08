@@ -30,6 +30,7 @@ const allowed=(method,path)=>{
   if(method==='GET'){
     if(['/api/runtime/workspaces','/api/runtime/project-types','/api/runtime/project-subtypes','/api/runtime/domain-presets','/api/runtime/aigc-modules','/api/runtime/aigc-ui-labels','/api/runtime/capabilities','/api/runtime/projects'].includes(path))return true;
     if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(knowledge-bindings|audit-events|lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
+    if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path))return true;
     if(/^\/api\/runtime\/workspaces\/[a-zA-Z0-9-]{1,64}\/(audit-evidence|global-search)$/.test(path))return true;
   }
   return method==='POST'&&path==='/api/runtime/projects';
@@ -168,6 +169,28 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
               'accept':'application/json',...(body?{'content-type':'application/json'}:{})
             },...(body?{body:JSON.stringify(body)}:{}),signal:controller.signal
           });
+          // Stream only the one allowlisted, authenticated attachment route.
+          // Never allow an arbitrary URL or forward the S3 signing credentials.
+          const isFile=/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/content$/.test(path);
+          if(isFile&&result.ok){
+            const size=Number(result.headers.get('content-length'));
+            const mime=(result.headers.get('content-type')||'application/octet-stream').split(';')[0].toLowerCase();
+            const allowedMime=['application/pdf','image/png','image/jpeg','image/webp','text/plain','application/json','audio/mpeg','audio/wav','video/mp4','application/octet-stream'];
+            if(!allowedMime.includes(mime)||!Number.isSafeInteger(size)||size<0||size>20*1024*1024)
+              throw error('FILE_PROXY_CONTRACT_INVALID',502);
+            let bytes=0;const chunks=[];
+            for await(const chunk of result.body){
+              bytes+=chunk.byteLength;
+              if(bytes>20*1024*1024)throw error('FILE_PROXY_TOO_LARGE',413);
+              chunks.push(Buffer.from(chunk));
+            }
+            if(bytes!==size)throw error('FILE_PROXY_LENGTH_MISMATCH',502);
+            const payload=Buffer.concat(chunks,bytes);
+            res.writeHead(200,{...headers,'content-type':mime,'content-length':bytes,
+              'content-disposition':'attachment; filename="authorized-asset"',
+              'content-security-policy':"sandbox; default-src 'none'"});
+            return res.end(payload);
+          }
           const raw=(await result.text()).slice(0,1048576);
           let payload;try{payload=JSON.parse(raw);}catch{payload={error:'RUNTIME_NON_JSON_RESPONSE'};}
           if(result.status===401||result.status===403){
