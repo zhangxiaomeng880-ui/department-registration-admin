@@ -92,7 +92,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       if(req.method==='GET'&&path==='/auth/session'){
         const s=sess(req);
-        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&env.CONSOLE_ALLOW_WRITES==='true',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',environment:'STAGING'});
+        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',environment:'STAGING'});
       }
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
@@ -106,7 +106,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const strikes=Date.now()>=previous.until?{count:0,until:0}:previous;
         if(strikes.count>=5)throw error('LOGIN_RATE_LIMITED',429);
         const body=await readJson(req);
-        let credential=null,mode=null;
+        let credential=null,mode=null,identityId=null,permissions=[];
         if(typeof body.credential==='string'&&body.credential){
           if(!/^rtk_[a-f0-9]{12}_[A-Za-z0-9_-]{30,80}$/.test(body.credential)){
             throw error('INVALID_CREDENTIALS',401);
@@ -114,13 +114,24 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           credential=body.credential;
           const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
           try{
-            const reply=await fetchImpl(base+'/api/runtime/workspaces',{
-              method:'GET',redirect:'error',signal:controller.signal,
-              headers:{'authorization':'Bearer '+credential,'accept':'application/json'}
-            });
-            if(reply.status!==200)throw error('INVALID_CREDENTIALS',401);
-            const response=await reply.json();
-            if(!Array.isArray(response?.data)||!response.data.length)throw error('SCOPED_WORKSPACE_REQUIRED',403);
+            const authenticatedGet=async path=>{
+              const reply=await fetchImpl(base+path,{
+                method:'GET',redirect:'error',signal:controller.signal,
+                headers:{'authorization':'Bearer '+credential,'accept':'application/json'}
+              });
+              if(reply.status!==200)throw error('INVALID_CREDENTIALS',401);
+              const response=await reply.json();
+              return response?.data;
+            };
+            const self=await authenticatedGet('/api/runtime/me');
+            if(self?.principalType!=='SCOPED'||self.platformAdmin!==false||!self.identityId||
+               !Array.isArray(self.permissions)||!['workspace:read','project:read'].every(x=>self.permissions.includes(x))){
+              throw error('SCOPED_READER_PERMISSIONS_REQUIRED',403);
+            }
+            const workspaces=await authenticatedGet('/api/runtime/workspaces');
+            if(!Array.isArray(workspaces)||!workspaces.length)throw error('SCOPED_WORKSPACE_REQUIRED',403);
+            identityId=self.identityId;
+            permissions=self.permissions;
             mode='scoped';
           }finally{clearTimeout(timeout);}
         }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&
@@ -133,7 +144,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         }
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
-        sessions.set(sid,{exp:Date.now()+8*3600*1000,mode,credential});
+        sessions.set(sid,{exp:Date.now()+8*3600*1000,mode,credential,identityId,permissions});
         return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800${secure}`});
       }
       if(req.method==='POST'&&path==='/auth/logout'){
@@ -144,7 +155,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const session=sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
         if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
-        if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
+        if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write')))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
         const body=req.method==='POST'?await readJson(req):null;
         if(req.method==='POST'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
         const controller=new AbortController();
