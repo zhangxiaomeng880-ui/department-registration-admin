@@ -94,13 +94,14 @@ async function selectProject(id){
  state.selected=id;renderProjects();$('empty').hidden=true;$('projectBody').hidden=false;
  text('projectTitle',project.name);text('projectMeta',project.projectKey+' · '+label(project)+' · '+project.id);
  text('projectStatus',project.status);text('currentStage',project.currentStageKey);text('workflowVersion',project.currentWorkflowVersion);text('stageCount','—');
- for(const el of ['stageTable','transitions','modules','auditRows'])clear($(el));
+ for(const el of ['stageTable','transitions','modules','auditRows','liveAuditRows'])clear($(el));
  const ver=state.version,expected=id;
  const routes=[
   ['/api/runtime/projects/'+id+'/lifecycle','lifecycle'],
   ['/api/runtime/projects/'+id+'/governance','governance'],
   ['/api/runtime/projects/'+id+'/stage-transitions?limit=50','transitions'],
-  ['/api/runtime/workspaces/'+state.workspaceId+'/audit-evidence?projectId='+id+'&limit=50','audit']
+  ['/api/runtime/workspaces/'+state.workspaceId+'/audit-evidence?projectId='+id+'&limit=50','audit'],
+  ['/api/runtime/projects/'+id+'/audit-events?limit=50','liveAudit']
  ];
  if(project.projectType==='AIGC_CONTENT')routes.push(['/api/runtime/projects/'+id+'/aigc-foundation','domain']);
  else routes.push(['/api/runtime/projects/'+id+'/product-domain','domain']);
@@ -114,6 +115,7 @@ async function selectProject(id){
   if(name==='governance'||name==='domain')renderModule(name,r.value);
   if(name==='transitions')renderTransitions(r.value);
   if(name==='audit')renderAudit(r.value);
+  if(name==='liveAudit')renderLiveAudit(r.value);
  }
  warn(errors.length?'部分真实接口不可用：'+errors.join('；'):'数据已从 Runtime 刷新。审计是服务端索引快照，可能需要单独重建。');
 }
@@ -137,6 +139,18 @@ function renderTransitions(v){
  const items=Array.isArray(v)?v:(v.items||[]);
  if(!items.length){root.append(make('p','没有服务端阶段变更记录。','muted'));return;}
  for(const e of items){const row=make('div','','event');const box=make('div');box.append(make('strong',(e.fromStageKey||'—')+' → '+(e.toStageKey||'—')));box.append(make('p',(e.transitionType||'')+' · '+(e.gateResultId||'无 Gate ID'),'mono'));row.append(box,make('small',e.createdAt||''));root.append(row);}
+}
+function renderLiveAudit(v){
+ const root=$('liveAuditRows');clear(root);
+ const items=Array.isArray(v.items)?v.items:[];
+ if(v.source!=='AUDIT_LOGS_PRIMARY'){root.append(make('p','原始审计来源未验证。','muted'));return;}
+ if(!items.length){root.append(make('p','当前项目无原始审计记录。','muted'));return;}
+ for(const e of items){
+  const row=make('div','','event'),box=make('div');
+  box.append(make('strong',e.eventType||'未知审计事件'));
+  box.append(make('p',(e.actorType||'')+' · '+(e.actorKey||'')+' · '+(e.id||''),'mono'));
+  row.append(box,make('small',e.createdAt||''));root.append(row);
+ }
 }
 function renderAudit(v){
  const root=$('auditRows');clear(root);const items=Array.isArray(v.items)?v.items:[];
