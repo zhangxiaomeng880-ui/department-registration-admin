@@ -292,6 +292,13 @@ async function loadProjectData(route,project,serial){
  text('projectStatus',project.status);text('currentStage',project.currentStageKey);
  text('workflowVersion',project.currentWorkflowVersion);
  showTab(route.tab,project.id);
+ // Clear prior project/route evidence BEFORE network I/O: a failed fetch must
+ // never leave another project's PASS, audit or task rows on this screen.
+ const pane={overview:['milestones'],tasks:['taskRows'],data:['dataRows'],
+   assets:['modules','domainSelect'],stages:['stageTable','transitions'],audit:['liveAuditRows','auditRows']}[route.tab]||[];
+ for(const id of pane)clear($(id));
+ if(route.tab==='overview')text('stageCount','—');
+ if(route.tab==='stages')renderAigcStageCheck(project,null);
  const path='/api/runtime/projects/'+encodeURIComponent(project.id);
  try{
   let gov,lifecycle;
@@ -325,7 +332,7 @@ async function loadProjectData(route,project,serial){
    ]);
    if(serial!==state.routeVersion)return;
    if(result[0].status==='fulfilled')renderAuditRows(result[0].value,'liveAuditRows',{primary:true});
-   else warn('原始审计读取失败：'+result[0].reason.message);
+   else $('liveAuditRows').replaceChildren(make('p','原始审计读取失败：'+result[0].reason.message,'muted'));
    if(result[1].status==='fulfilled')renderAuditRows(result[1].value,'auditRows');
    else $('auditRows').replaceChildren(make('p','索引接口不可用：'+result[1].reason.message,'muted'));
   }
