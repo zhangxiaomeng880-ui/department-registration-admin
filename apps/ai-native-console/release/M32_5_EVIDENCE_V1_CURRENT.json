@@ -136,7 +136,8 @@
     "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD.",
     "2026-10-08: Reused persistent Library exact-match candidate and inspected official Copyright CURRENT policy: third-party/music clearance must be verified per external release; no authorized new publication. Prepublication Gate HOLD on rights and explicit approval; no reruns or file uploads.",
     "2026-10-08: Two-repository branch discovery admin 13 branches and runtime 133 branches. No separate M32.1–M32.4.4 named branch; source implementation still unverified, not proven absent. Branch source survey at M32_UPSTREAM_SOURCE_RECOVERY_V1_CURRENT.json.",
-    "M32.1 mapped M31 actual existing route/read baseline; no standalone M32.1 requirements or real release proof recovered, status remains UNVERIFIED. No new business/video action and no deployments."
+    "M32.1 mapped M31 actual existing route/read baseline; no standalone M32.1 requirements or real release proof recovered, status remains UNVERIFIED. No new business/video action and no deployments.",
+    "M32.1 R01-R10 candidate acceptance matrix authored from M31 code + frozen Master. No located canonical M32.1 spec; user scope not inferred as formally approved. M32.1 remains UNVERIFIED; no deployment/production mutation."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -430,5 +431,12 @@
       "authenticated scope E2E"
     ],
     "passPromoted": false
+  },
+  "m32_1AcceptanceMatrix": {
+    "status": "DRAFT_CANDIDATE_SCOPE_NOT_APPROVED",
+    "path": "M32_1_REQUIREMENTS_ACCEPTANCE_V0.1_CURRENT.md",
+    "requirementsCount": 10,
+    "implementedCodeIsNotStagingPass": true,
+    "upstreamPromotion": false
   }
 }
