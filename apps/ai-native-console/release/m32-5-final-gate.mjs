@@ -49,7 +49,7 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
  // Product facts simply because the AIGC external evidence is unfinished.
  const businessBlockers=[];
  const c19=manifest?.criterion19||{};
- const businessBlockers=[];
+ 
  const p1=c19['C19-P1']||{},p2=c19['C19-P2']||{};
  const sourceRun=entry=>entry?.gitHubRun?.conclusion==='success'&&
     /^[1-9]\d{6,14}$/.test(String(entry.gitHubRun.id||''))&&
