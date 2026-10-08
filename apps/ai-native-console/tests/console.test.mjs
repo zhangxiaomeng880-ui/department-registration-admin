@@ -49,3 +49,34 @@ test('cross-origin writes and direct front-end token use are rejected',async()=>
 test('missing configuration fails closed at startup',()=>{
  assert.throws(()=>createConsoleServer({env:{}}),/CONSOLE_CONFIGURATION_REQUIRED/);
 });
+
+test('primary audit endpoint is allowlisted and a production token never reaches browser',async()=>{
+ const calls=[];
+ const a=await start(async(u,o)=>{
+   calls.push({u,auth:o.headers.authorization});
+   return fakeResponse({data:{source:'AUDIT_LOGS_PRIMARY',items:[{eventType:'PROJECT_CREATED',id:'42'}]}});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const result=await fetch(a.url+'/api/runtime/projects/12345678-1234-4234-8234-123456789abc/audit-events?limit=10',{headers:{cookie}});
+  assert.equal(result.status,200);
+  assert.equal((await result.json()).data.source,'AUDIT_LOGS_PRIMARY');
+  assert.equal(calls.length,1);
+  assert.ok(calls[0].u.includes('/audit-events?limit=10'));
+  assert.equal(calls[0].auth,'Bearer staging-secret');
+  assert.equal((await fetch(a.url+'/api/runtime/tenants',{headers:{cookie}})).status,403);
+ }finally{await a.close();}
+});
+test('staging login throttling rejects the sixth bad password',async()=>{
+ const a=await start(async()=>fakeResponse({data:[]}));
+ try{
+  for(let i=0;i<5;i++){
+   const r=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'bad-'+i})});
+   assert.equal(r.status,401);
+  }
+  const blocked=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(blocked.status,429);
+ }finally{await a.close();}
+});
