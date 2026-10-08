@@ -21,10 +21,10 @@
 | No browser mockData/localStorage catalogue | PASS | `AI Native Console M31` CI |
 | Server-only Runtime bearer auth | PASS (code test) | `tests/console.test.mjs` |
 | Same-origin POST and restricted Runtime proxy | PASS (code test) | `tests/console.test.mjs` |
-| True POST /api/runtime/projects proxy | PASS (mock-upstream contract test only) | `tests/console.test.mjs` |
-| Scoped GET project list, pagination, query validation | PASS (code/unit test) | `test/frontend-sync-api.test.mjs` in backend |
-| Frontend CI | PASS | GitHub Actions run 37723303815 |
-| Backend CI | PASS | GitHub Actions run 37723195545 |
+| True POST /api/runtime/projects proxy | PASS (proxy mock-upstream + backend real MySQL persistence and audit tests) | `tests/console.test.mjs` |
+| Scoped GET project list, pagination, query validation | PASS (real MySQL + code test) | `test/frontend-sync-api.test.mjs` in backend |
+| Frontend CI | PASS | GitHub Actions run 37723849040 (plus subsequent scope-fallback commit CI) |
+| Backend CI | PASS | Real MySQL integration run 37723830080 |
 | Existing Production untouched | PASS | Changes only in isolated feature branches |
 
 ## P0 blockers before live frontend Gate PASS
@@ -41,3 +41,12 @@
 ## Release policy
 
 This is **not** a frontend or platform launch approval. Existing staging Runtime and MySQL are not modified by branch commits. Frontend gate is HOLD/FAIL until blockers above are verified with evidence. Existing PASS/FROZEN backend work is preserved.
+
+## Incremental M31 verification — 2026-10-08
+
+- **Source-of-truth audit:** authenticated POST project creation inserts `projects` and `PROJECT_CREATED` into `audit_logs` in one transaction; audit failure forces rollback.
+- **Live read:** `GET /api/runtime/projects/:id/audit-events` reads original `audit_logs`; M30 `audit-evidence` remains a possibly stale indexed view and is labeled separately.
+- **MySQL test:** unique project ID persists across re-query; no cross-workspace leakage; audit entry exists; failed audit insert rolls back project creation. GitHub Actions run `37723830080` PASS.
+- **Least privilege:** workspace/project listing does not fail merely because admin-only catalogues return 403; no mock fallback. Frontend CI run `37723849040` PASS.
+- **Security:** API proxy allowlist, login throttling and anti-cross-origin checks tested. The single shared Staging console login and server token **are not production identity/RBAC**; do not promote.
+- **Deployment:** Railway Staging is still on `feat/c19-p2-product-real-loop-materialization`, with no M31 Runtime or console deployment. No Railway patch or production changes applied this round.
