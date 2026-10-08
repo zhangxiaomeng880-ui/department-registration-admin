@@ -157,6 +157,8 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const session=sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
         if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
+        if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&session.mode!=='scoped')
+          throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
         if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write')))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
         const body=req.method==='POST'?await readJson(req):null;
         if(req.method==='POST'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
