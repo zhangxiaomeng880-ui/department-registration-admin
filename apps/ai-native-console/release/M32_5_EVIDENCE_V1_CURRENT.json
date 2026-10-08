@@ -128,7 +128,8 @@
     "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop.",
     "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result.",
     "V0.2 A0 candidate repaired prior overlapping duplicate subtitles: new overlay ends before original fades in; technical QA PASS, editorial gate still HOLD; never published.",
-    "Author confirmed A0 V0.2 visuals. Directly rehashed local file 083600... but previous manifest A0 v0.2 candidate hash is d8e6...; immutable artifact identity conflict requires reconciliation before FINAL/FROZEN. No publication permission."
+    "Author confirmed A0 V0.2 visuals. Directly rehashed local file 083600... but previous manifest A0 v0.2 candidate hash is d8e6...; immutable artifact identity conflict requires reconciliation before FINAL/FROZEN. No publication permission.",
+    "Two actual A0 V0.2 exports exist. Author-approved preview is exact SHA 083600.. (3,120,203 bytes), not SHA d8e6.. (15,450,256 bytes); no equivalence or approval transferred. Release candidate awaits separate final archive gate."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -267,7 +268,7 @@
       }
     },
     "C19-A2": {
-      "status": "A0_V0_2_HUMAN_VISUAL_APPROVED__FINGERPRINT_CONFLICT_HOLD__EXTERNAL_NEXT_ROUND_HOLD",
+      "status": "A0_V02_EXACT_PREVIEW_HUMAN_VISUAL_PASS__EXTERNAL_NEXT_ROUND_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
       "humanDecision": {
@@ -302,7 +303,7 @@
         "realNextRoundMetrics": null
       },
       "a0VisualQA": {
-        "status": "HUMAN_VISUAL_QA_APPROVED__RELEASE_CANDIDATE_FREEZE_PENDING_FINGERPRINT_RECONCILIATION",
+        "status": "HUMAN_VISUAL_QA_PASS_FOR_EXACT_SHA_083600__FORMAL_ARCHIVE_PENDING",
         "selectedByHuman": true,
         "originalV01Sha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
         "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4",
@@ -324,8 +325,19 @@
           "actualLocalFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
           "actualLocalSha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
           "priorManifestSha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
-          "result": "MISMATCH_MUST_NOT_FREEZE_UNTIL_EXPLAINED"
+          "result": "TWO_DISTINCT_EXPORT_FILES_IDENTIFIED__ONLY_SHA_083600_APPROVED"
         }
+      },
+      "humanApprovedExactFile": {
+        "status": "HUMAN_VISUAL_QA_PASS",
+        "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+        "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+        "sizeBytes": 3120203,
+        "evidenceRef": "C19_A1_A0_V02_AUTHOR_VISUAL_ACCEPTANCE_CURRENT.md",
+        "approvalScope": "VISUAL_ONLY",
+        "otherSameLabelExport": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+        "otherExportNotApproved": true,
+        "publicationApproved": false
       }
     }
   }
