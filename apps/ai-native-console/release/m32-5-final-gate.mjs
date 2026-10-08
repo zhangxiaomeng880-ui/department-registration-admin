@@ -49,6 +49,7 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
  // Product facts simply because the AIGC external evidence is unfinished.
  const businessBlockers=[];
  const c19=manifest?.criterion19||{};
+ const businessEvidenceBlockers=[];
  const p1=c19['C19-P1']||{},p2=c19['C19-P2']||{};
  const sourceRun=entry=>entry?.gitHubRun?.conclusion==='success'&&
     /^[1-9]\d{6,14}$/.test(String(entry.gitHubRun.id||''))&&
@@ -126,6 +127,7 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
   gate:'M32.5_WORKBENCH_FINAL_RELEASE',
   decision:blockers.length?'HOLD':'RELEASE_READY_PENDING_PROMOTION',
   structuralEvaluation:'COMPLETE',
+  businessCriterion19:{decision:businessEvidenceBlockers.length?'HOLD':'PASS',blockers:businessEvidenceBlockers,scope:'INDEPENDENT_BUSINESS_E2E_NOT_A_PLATFORM_RELEASE_PREREQUISITE'},
   blockers,blockerCount:blockers.length,
   businessAcceptance:{gate:'CRITERION_19_REAL_BUSINESS_E2E',decision:businessBlockers.length?'HOLD':'PASS',blockers:businessBlockers,blockerCount:businessBlockers.length,nonBlockingForPlatformRelease:true},
   nonDeploymentEffect:true
