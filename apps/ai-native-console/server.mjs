@@ -28,8 +28,8 @@ const sameOrigin=req=>{
 };
 const allowed=(method,path)=>{
   if(method==='GET'){
-    if(['/api/runtime/workspaces','/api/runtime/project-types','/api/runtime/project-subtypes','/api/runtime/domain-presets','/api/runtime/aigc-modules','/api/runtime/aigc-ui-labels','/api/runtime/projects'].includes(path))return true;
-    if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(audit-events|lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
+    if(['/api/runtime/workspaces','/api/runtime/project-types','/api/runtime/project-subtypes','/api/runtime/domain-presets','/api/runtime/aigc-modules','/api/runtime/aigc-ui-labels','/api/runtime/capabilities','/api/runtime/projects'].includes(path))return true;
+    if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(knowledge-bindings|audit-events|lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
     if(/^\/api\/runtime\/workspaces\/[a-zA-Z0-9-]{1,64}\/(audit-evidence|global-search)$/.test(path))return true;
   }
   return method==='POST'&&path==='/api/runtime/projects';
@@ -181,7 +181,24 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       // Addressable project pages: deep links and browser back/forward always
       // load the same authenticated shell, never a fabricated project snapshot.
-      if(req.method==='GET'&&new RegExp('^/projects/[A-Za-z0-9-]{1,64}/(stages|assets|audit)$').test(path)){
+      if(req.method==='GET'&&(['/projects','/capabilities','/knowledge'].includes(path)||new RegExp('^/projects/[A-Za-z0-9-]{1,64}(/(overview|tasks|assets|data|stages|audit)(/[A-Za-z0-9-]{1,64})?)?
+        const bytes=await readFile(join(root,'public','index.html'));
+        res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
+      }
+      if(req.method==='GET'&&ASSETS[path]){
+        const bytes=await readFile(join(root,'public',ASSETS[path]));
+        res.writeHead(200,{...headers,'content-type':MIME[path]});return res.end(bytes);
+      }
+      throw error('NOT_FOUND',404);
+    }catch(e){return json(res,e.status||502,{error:e.code||'UPSTREAM_UNAVAILABLE'});}
+  });
+};
+if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
+  try{
+    createConsoleServer().listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('AI Native Console listening'));
+  }catch(e){console.error(e.code||'STARTUP_FAILED');process.exitCode=1;}
+}
+).test(path))){
         const bytes=await readFile(join(root,'public','index.html'));
         res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
       }
