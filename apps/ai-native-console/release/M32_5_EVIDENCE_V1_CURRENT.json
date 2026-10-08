@@ -132,7 +132,8 @@
     "Two actual A0 V0.2 exports exist. Author-approved preview is exact SHA 083600.. (3,120,203 bytes), not SHA d8e6.. (15,450,256 bytes); no equivalence or approval transferred. Release candidate awaits separate final archive gate.",
     "2026-10-08: Two distinct 12s 1080x1920 300-frame A0 V0.2 artifacts verified: 15,450,256-byte earlier candidate d8e6... and 3,120,203-byte QA candidate 083600... . User visual confirmation bound to latter QA candidate; predecessor retained history. No publication/Archive FINAL claims.",
     "Read-only freeze copy produced and sha256 checked identical to author-approved QA preview; ffmpeg complete decode exit 0; both historical A0 v0.2 variants have same AAC stream but distinct video bytes. This is a local handoff, not permanent archive or publication.",
-    "Candidate A0 V0.2 archived create-only to Xiaohongshu channel adaptation Library and bytes read back SHA-256 matched. Not official published Master, nor permission to publish or A2 real outcome."
+    "Candidate A0 V0.2 archived create-only to Xiaohongshu channel adaptation Library and bytes read back SHA-256 matched. Not official published Master, nor permission to publish or A2 real outcome.",
+    "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -271,7 +272,7 @@
       }
     },
     "C19-A2": {
-      "status": "A0_V0_2_LIBRARY_CANDIDATE_VERIFIED__REAL_NEXT_ROUND_HOLD",
+      "status": "A0_V0_2_ARCHIVED_AS_UNPUBLISHED_CANDIDATE__EXTERNAL_NEXT_ROUND_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
       "humanDecision": {
@@ -306,7 +307,7 @@
         "realNextRoundMetrics": null
       },
       "a0VisualQA": {
-        "status": "HUMAN_VISUAL_PASS__CANDIDATE_LIBRARY_ARCHIVE_PASS__EXTERNAL_RELEASE_HOLD",
+        "status": "HUMAN_VISUAL_PASS__LIBRARY_RELEASE_CANDIDATE_ARCHIVED__PUBLICATION_HOLD",
         "selectedByHuman": true,
         "originalV01Sha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
         "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
@@ -362,6 +363,16 @@
           "readbackShaVerified": true,
           "designation": "APPROVED_CREATIVE_CANDIDATE_ONLY",
           "externalPublished": false
+        },
+        "persistentLibraryArchive": {
+          "status": "PASS_BYTE_EXACT_MATCH",
+          "libraryPath": "/你好那年夏天/渠道适配/小红书/C19_A1_A0_发布候选/C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+          "fileId": "file_00000000e12c81f8beb0cc75b36aa166",
+          "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+          "sizeBytes": 3120203,
+          "independentReadback": true,
+          "byteForByteComparedToAuthorReviewedCandidate": true,
+          "scope": "UNPUBLISHED_CANDIDATE_ASSET_ONLY"
         }
       },
       "humanApprovedExactFile": {
