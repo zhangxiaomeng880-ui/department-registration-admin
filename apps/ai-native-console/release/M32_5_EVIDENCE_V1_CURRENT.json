@@ -124,7 +124,8 @@
     "C19-A1 source recovery: Materialized two real 12s raw MP4 candidate files and computed independent sha256; one has visible bottom title matching public note. Formal published source hash still null; human/provider proof required.",
     "Author visually confirmed captioned 12s group in 2026-10-08 conversation; this establishes scene+caption identity only, NOT exact uploaded MP4 hash or approval for Review/Archive.",
     "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted.",
-    "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied."
+    "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied.",
+    "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -245,6 +246,21 @@
         "finding": "at 0.3 absent; at 1.0 fading in; at 1.5 legible",
         "supersedesAssumption": "subtitle only appears at 2 seconds",
         "sourceSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890"
+      },
+      "internalReviewCandidate": {
+        "id": "C19_A1_A0_FIRST_FRAME_CAPTION_PREVIEW_ONLY",
+        "status": "INTERNAL_PREVIEW_QA_PASS__AUTHOR_CREATIVE_DECISION_PENDING",
+        "changeScope": "FIRST_FRAME_SUBTITLE_TIMING_ONLY",
+        "sourceLibraryFileId": "file_0000000090a882308460974cdd972ffc",
+        "sourceSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "previewSha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
+        "durationSeconds": 12,
+        "audioBitstreamMatchedOriginal": true,
+        "humanCreativeReviewApproval": false,
+        "externallyPublished": false,
+        "registeredAsFormalMaster": false,
+        "provenanceFile": "C19_A1_A0_OPENING_PREVIEW_V1_REVIEW_ONLY.md",
+        "subtitleFirstVisibleSourceEstimate": "about 0.75s fade-in; about 1s readable"
       }
     },
     "C19-A2": {
