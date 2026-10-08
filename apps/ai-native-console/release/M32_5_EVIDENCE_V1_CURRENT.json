@@ -133,7 +133,8 @@
     "2026-10-08: Two distinct 12s 1080x1920 300-frame A0 V0.2 artifacts verified: 15,450,256-byte earlier candidate d8e6... and 3,120,203-byte QA candidate 083600... . User visual confirmation bound to latter QA candidate; predecessor retained history. No publication/Archive FINAL claims.",
     "Read-only freeze copy produced and sha256 checked identical to author-approved QA preview; ffmpeg complete decode exit 0; both historical A0 v0.2 variants have same AAC stream but distinct video bytes. This is a local handoff, not permanent archive or publication.",
     "Candidate A0 V0.2 archived create-only to Xiaohongshu channel adaptation Library and bytes read back SHA-256 matched. Not official published Master, nor permission to publish or A2 real outcome.",
-    "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD."
+    "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD.",
+    "2026-10-08: Reused persistent Library exact-match candidate and inspected official Copyright CURRENT policy: third-party/music clearance must be verified per external release; no authorized new publication. Prepublication Gate HOLD on rights and explicit approval; no reruns or file uploads."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -272,7 +273,7 @@
       }
     },
     "C19-A2": {
-      "status": "A0_V0_2_ARCHIVED_AS_UNPUBLISHED_CANDIDATE__EXTERNAL_NEXT_ROUND_HOLD",
+      "status": "A0_V0_2_LIBRARY_QA_PASS__PREPUBLISH_RIGHTS_AND_HUMAN_GATE_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
       "humanDecision": {
@@ -373,6 +374,21 @@
           "independentReadback": true,
           "byteForByteComparedToAuthorReviewedCandidate": true,
           "scope": "UNPUBLISHED_CANDIDATE_ASSET_ONLY"
+        },
+        "prePublicationGate": {
+          "status": "HOLD_RIGHTS_AND_EXPLICIT_PUBLICATION_APPROVAL",
+          "candidateIntegrity": "PASS_PERSISTENT_LIBRARY_SHA_MATCH",
+          "visualHumanApproval": "PASS_FOR_A0_V0_2_ONLY",
+          "videoSpecs": "PASS_12S_1080x1920",
+          "platform": "XIAOHONGSHU",
+          "targetPostTitle": "昨天，我又梦到你了",
+          "thirdPartyRights": "PENDING_RIGHTS_CLEARANCE",
+          "musicRights": "NOT_INDEPENDENTLY_VERIFIED_FOR_REPUBLICATION",
+          "publicationConsent": false,
+          "externalPostId": null,
+          "externalMetrics": null,
+          "sourcePolicy": "你好那年夏天_IP版权元数据与锁定规则_V1.0_CURRENT_20261007.md",
+          "noAutoPublish": true
         }
       },
       "humanApprovedExactFile": {
