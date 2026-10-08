@@ -44,24 +44,40 @@ async function bootstrap(){
  await loadCatalogs();
 }
 async function loadCatalogs(){
- warn('正在读取真实工作空间和项目元数据…');
+ warn('正在读取真实工作空间…');
  try{
-   const [ws,types,presets,modules]=await Promise.all([
-    req('/api/runtime/workspaces'),
-    req('/api/runtime/project-types'),
-    req('/api/runtime/domain-presets'),
-    req('/api/runtime/aigc-modules')
-   ]);
+   // The workspace and project catalogue are the minimum read contract.
+   // Administrative registry endpoints may deny a least-privileged reader.
+   const ws=await req('/api/runtime/workspaces');
    state.workspaces=Array.isArray(ws)?ws:(ws.items||[]);
+   const extras=await Promise.allSettled([
+     req('/api/runtime/project-types'),
+     req('/api/runtime/domain-presets'),
+     req('/api/runtime/aigc-modules')
+   ]);
+   const value=i=>extras[i].status==='fulfilled'?extras[i].value:[];
+   const types=value(0),presets=value(1),modules=value(2);
    state.types=Array.isArray(types)?types:[];
    state.presets=Array.isArray(presets)?presets:(presets.items||[]);
    state.modules=Array.isArray(modules)?modules:[];
+   const restricted=extras.filter(r=>r.status==='rejected').length;
    const sel=$('workspaceSelect');clear(sel);
-   for(const w of state.workspaces){const option=make('option',w.name||w.workspaceKey||w.id);option.value=w.id;sel.append(option);}
+   for(const w of state.workspaces){
+     const option=make('option',w.name||w.workspaceKey||w.id);
+     option.value=w.id;sel.append(option);
+   }
    state.workspaceId=state.workspaces.find(x=>x.id===state.workspaceId)?.id||state.workspaces[0]?.id||null;
-   if(state.workspaceId){sel.value=state.workspaceId;await loadProjects();}
-   else{warn('Runtime 未返回工作空间。未创建模拟空间。');clear($('projectList'));}
- }catch(e){warn('服务端读取失败：'+e.message+'。不使用旧原型数据兜底。');}
+   if(state.workspaceId){
+     sel.value=state.workspaceId;
+     await loadProjects();
+     if(restricted && !$('notice').textContent.includes('失败')){
+       warn('真实项目读取完成。'+restricted+' 项管理目录因权限或接口原因不可读取；不会以模拟数据填充。');
+     }
+   }else{
+     warn('Runtime 未返回可访问的工作空间。未创建模拟空间。');
+     clear($('projectList'));
+   }
+ }catch(e){warn('工作空间读取失败：'+e.message+'。不使用旧原型数据兜底。');}
 }
 async function loadProjects(focus=null){
  if(!state.workspaceId)return;
