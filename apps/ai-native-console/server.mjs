@@ -198,20 +198,3 @@ if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
     createConsoleServer().listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('AI Native Console listening'));
   }catch(e){console.error(e.code||'STARTUP_FAILED');process.exitCode=1;}
 }
-).test(path))){
-        const bytes=await readFile(join(root,'public','index.html'));
-        res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
-      }
-      if(req.method==='GET'&&ASSETS[path]){
-        const bytes=await readFile(join(root,'public',ASSETS[path]));
-        res.writeHead(200,{...headers,'content-type':MIME[path]});return res.end(bytes);
-      }
-      throw error('NOT_FOUND',404);
-    }catch(e){return json(res,e.status||502,{error:e.code||'UPSTREAM_UNAVAILABLE'});}
-  });
-};
-if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
-  try{
-    createConsoleServer().listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('AI Native Console listening'));
-  }catch(e){console.error(e.code||'STARTUP_FAILED');process.exitCode=1;}
-}
