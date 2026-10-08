@@ -129,7 +129,8 @@
     "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result.",
     "V0.2 A0 candidate repaired prior overlapping duplicate subtitles: new overlay ends before original fades in; technical QA PASS, editorial gate still HOLD; never published.",
     "Author confirmed A0 V0.2 visuals. Directly rehashed local file 083600... but previous manifest A0 v0.2 candidate hash is d8e6...; immutable artifact identity conflict requires reconciliation before FINAL/FROZEN. No publication permission.",
-    "Two actual A0 V0.2 exports exist. Author-approved preview is exact SHA 083600.. (3,120,203 bytes), not SHA d8e6.. (15,450,256 bytes); no equivalence or approval transferred. Release candidate awaits separate final archive gate."
+    "Two actual A0 V0.2 exports exist. Author-approved preview is exact SHA 083600.. (3,120,203 bytes), not SHA d8e6.. (15,450,256 bytes); no equivalence or approval transferred. Release candidate awaits separate final archive gate.",
+    "2026-10-08: Two distinct 12s 1080x1920 300-frame A0 V0.2 artifacts verified: 15,450,256-byte earlier candidate d8e6... and 3,120,203-byte QA candidate 083600... . User visual confirmation bound to latter QA candidate; predecessor retained history. No publication/Archive FINAL claims."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -268,7 +269,7 @@
       }
     },
     "C19-A2": {
-      "status": "A0_V02_EXACT_PREVIEW_HUMAN_VISUAL_PASS__EXTERNAL_NEXT_ROUND_HOLD",
+      "status": "A0_V0_2_LOCAL_CANDIDATE_FINGERPRINT_LOCKED__EXTERNAL_NEXT_ROUND_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
       "humanDecision": {
@@ -303,11 +304,11 @@
         "realNextRoundMetrics": null
       },
       "a0VisualQA": {
-        "status": "HUMAN_VISUAL_QA_PASS_FOR_EXACT_SHA_083600__FORMAL_ARCHIVE_PENDING",
+        "status": "HUMAN_VISUAL_PASS__LOCAL_CANDIDATE_FINGERPRINT_LOCKED__ARCHIVE_PUBLICATION_PENDING",
         "selectedByHuman": true,
         "originalV01Sha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
-        "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4",
-        "currentCandidateSha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+        "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+        "currentCandidateSha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
         "durationSeconds": 12,
         "frameCount": 300,
         "audioStreamUnchanged": true,
@@ -322,10 +323,21 @@
         },
         "externalReleaseApproved": false,
         "fileFingerprintReconciliation": {
-          "actualLocalFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
-          "actualLocalSha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
-          "priorManifestSha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
-          "result": "TWO_DISTINCT_EXPORT_FILES_IDENTIFIED__ONLY_SHA_083600_APPROVED"
+          "result": "RESOLVED_TWO_DISTINCT_ARTIFACTS",
+          "priorManifestArtifact": {
+            "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4",
+            "sizeBytes": 15450256,
+            "sha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+            "status": "HISTORY_CANDIDATE_NOT_SELECTED"
+          },
+          "userReviewedArtifact": {
+            "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+            "sizeBytes": 3120203,
+            "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+            "status": "HUMAN_VISUAL_PASS_LOCAL_RELEASE_CANDIDATE"
+          },
+          "evidenceMethod": "read-only sha256sum and ffprobe on actual two different MP4s",
+          "sourceData": "2026-10-08 container recheck"
         }
       },
       "humanApprovedExactFile": {
