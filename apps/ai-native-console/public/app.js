@@ -1,6 +1,7 @@
+import {isCurrentAssetRead,isCurrentKnowledgeRead,isCurrentProjectList} from './read-guards.mjs';
 // AI Native M31: distinct addressable screens. No client-side business data persistence.
 const $=id=>document.getElementById(id);
-const state={workspaces:[],projects:[],presets:[],selected:null,workspaceId:null,type:'',writesEnabled:false,routeVersion:0,viewCache:null};
+const state={workspaces:[],projects:[],presets:[],selected:null,workspaceId:null,type:'',writesEnabled:false,routeVersion:0,viewCache:null,assetNonce:0,knowledgeNonce:0,projectListNonce:0};
 const make=(tag,value='',cls='')=>{const e=document.createElement(tag);e.textContent=value==null?'—':String(value);if(cls)e.className=cls;return e;};
 const clear=node=>node.replaceChildren();
 const text=(id,value)=>$(id).textContent=value==null?'—':String(value);
@@ -118,19 +119,24 @@ async function loadCatalogs(){
  }catch(e){state.projects=[];warn('工作空间读取失败：'+e.message+'；不会补造项目。');await renderRoute();}
 }
 async function loadProjects(){
- if(!state.workspaceId){state.projects=[];await renderRoute();return;}
+ const workspaceId=state.workspaceId,nonce=++state.projectListNonce;
+ const current=()=>isCurrentProjectList({nonce,workspaceId},{nonce:state.projectListNonce,workspaceId:state.workspaceId});
+ if(!workspaceId){state.projects=[];await renderRoute();return;}
  try{
   const items=[];let offset=0,total=0;
   do{
-   const page=await req('/api/runtime/projects?workspaceId='+encodeURIComponent(state.workspaceId)+'&offset='+offset+'&limit=100');
+   const page=await req('/api/runtime/projects?workspaceId='+encodeURIComponent(workspaceId)+'&offset='+offset+'&limit=100');
+   if(!current())return;
    if(!Array.isArray(page?.items)||!Number.isInteger(page.total))throw Error('PROJECT_LIST_CONTRACT_INVALID');
    total=page.total;items.push(...page.items);offset+=page.items.length;
    if(items.length>1000)throw Error('PROJECT_LIST_LIMIT_EXCEEDED');
    if(!page.items.length)break;
   }while(offset<total);
+  if(!current())return;
   state.projects=items;state.viewCache=null;await renderRoute();
- }catch(e){state.projects=[];warn('真实项目查询失败：'+e.message);await renderRoute();}
+ }catch(e){if(!current())return;state.projects=[];warn('真实项目查询失败：'+e.message);await renderRoute();}
 }
+
 function renderCatalog(){
  const root=$('projectList');clear(root);
  const items=state.projects.filter(p=>!state.type||p.projectType===state.type);
@@ -166,9 +172,17 @@ async function renderKnowledge(){
 }
 async function loadKnowledgeBinding(id){
  const root=$('knowledgeRows');clear(root);
+ const request={routeVersion:state.routeVersion,nonce:++state.knowledgeNonce,workspaceId:state.workspaceId,projectId:id};
+ const current=()=>isCurrentKnowledgeRead(request,{
+  routeVersion:state.routeVersion,nonce:state.knowledgeNonce,workspaceId:state.workspaceId,
+  projectId:$('knowledgeProject').value,page:parseRoute().page
+ });
  if(!id)return;
+ root.append(make('p','正在读取项目知识源…','muted'));
  try{
   const items=await req('/api/runtime/projects/'+encodeURIComponent(id)+'/knowledge-bindings');
+  if(!current())return;
+  clear(root);
   if(!Array.isArray(items))throw Error('KNOWLEDGE_BINDING_CONTRACT_INVALID');
   if(!items.length){root.append(make('p','该项目未绑定知识源。全局文件浏览和授权打开仍未接通。','muted'));return;}
   for(const it of items){
@@ -177,8 +191,9 @@ async function loadKnowledgeBinding(id){
    info.append(make('p',[it.sourceKey,it.provider,it.sourceType].filter(Boolean).join(' · '),'mono'));
    row.append(info,make('span',it.status||'—','status'));root.append(row);
   }
- }catch(e){root.append(make('p','知识源绑定读取受阻：'+e.message,'muted'));}
+ }catch(e){if(current()){clear(root);root.append(make('p','知识源绑定读取受阻：'+e.message,'muted'));}}
 }
+
 const values=(root,obj,fields)=>{
  for(const [key,value] of fields){
   const row=make('div','','event');row.append(make('strong',key),make('span',value??'—','mono'));root.append(row);
@@ -251,8 +266,19 @@ function configureDomains(project,stages){
 }
 async function loadAssetModule(id,name='aigc-asset-system'){
  const root=$('modules');clear(root);
+ const request={routeVersion:state.routeVersion,nonce:++state.assetNonce,projectId:id,domain:name};
+ const current=()=>{
+  const route=parseRoute();
+  return isCurrentAssetRead(request,{
+   routeVersion:state.routeVersion,nonce:state.assetNonce,projectId:route.projectId,
+   domain:$('domainSelect').value,page:route.page,tab:route.tab
+  });
+ };
+ root.append(make('p','正在读取服务端资产…','muted'));
  try{
   const data=await req('/api/runtime/projects/'+encodeURIComponent(id)+'/'+name);
+  if(!current())return;
+  clear(root);
   if(name!=='aigc-asset-system'){
    const box=make('pre','','mono');box.textContent=JSON.stringify(data,null,2).slice(0,12000);root.append(box);return;
   }
@@ -266,8 +292,9 @@ async function loadAssetModule(id,name='aigc-asset-system'){
    row.append(make('span',(asset.assetType||'—')+' · '+(asset.status||'—'),'status'));
    row.append(make('small','资产 ID · '+asset.id+' · '+versions.filter(x=>x.assetId===asset.id).length+' 个版本','mono'));
   }
- }catch(e){root.append(make('p','真实资产接口不可用：'+e.message,'muted'));}
+ }catch(e){if(current()){clear(root);root.append(make('p','真实资产接口不可用：'+e.message,'muted'));}}
 }
+
 function renderData(g,lifecycle){
  const root=$('dataRows');clear(root);
  if(!g||!lifecycle){root.append(make('p','项目数据源不完整，不展示推测的统计数值。','muted'));return;}
@@ -414,7 +441,7 @@ async function renderRoute(){
  else{setScreen('detailScreen');await loadDetail(route,project,serial);}
 }
 $('workspaceSelect').addEventListener('change',async event=>{
- state.workspaceId=event.target.value;state.selected=null;
+ state.workspaceId=event.target.value;state.selected=null;state.projects=[];
  if(parseRoute().page!=='projects')history.pushState(null,'','/projects');
  await loadProjects();
 });
