@@ -1,5 +1,8 @@
 # C19-A1 发布源候选与 C19-A2 复盘准备｜2026-10-08 CURRENT
 
+> **2026-10-08 A0 首帧字幕试验 · 增量勘误：** 本轮直接抽取 t=0–1.75s 帧，确认字幕约 **0.75s 开始淡入、约 1s 可读**。下文“标题约 2s 起”属于旧的主观粗估，已被真实逐帧核验更正。实验应称为“首帧可读”而非“提前约两秒”。已经制作的 `C19_A1_A0_FIRST_FRAME_CAPTION_PREVIEW_ONLY.mp4` 只是一份**内部比较预览**，技术 QA 记录在 `C19_A1_A0_OPENING_PREVIEW_V1_REVIEW_ONLY.md`；它没有得到创作批准，也没有对外发布，不是 C19-A2 下一轮真实 E2E 证明。
+
+
 ## 状态 / 决策
 - **C19-A1 Source Recovery = HIGH-CONFIDENCE CANDIDATE FOUND / HUMAN SOURCE BINDING HOLD**。
 - **C19-A1 Publication + Real Performance = REUSE / PASS ON THOSE FACTS ONLY**，不重复发布。
