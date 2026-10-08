@@ -11,7 +11,7 @@ Date: 2026-10-08
 | Real Staging login shell in Chrome desktop and mobile + anonymous 401 + writes disabled | PASS | GitHub Actions 37726702505 |
 | New URL-based project navigation / back / deep-link reload (isolated browser) | PASS | GitHub Actions 37726640701, 37726702505 |
 | New Staging UI deployment | SUCCESS | Railway c/o deployment 56c0caa9-b497-4ea2-bebf-893ab7762230 |
-| Real Staging URL deep-link request | PENDING latest CI check | GitHub Actions 37726826312 (test extension) |
+| Real Staging URL deep-link request | PASS | GitHub Actions 37726826312, Chromium browser-contract |
 | Browser authenticated against real Railway Runtime | HOLD | No least-privileged end-user login credential |
 | Real mutation after refresh | HOLD | CONSOLE_ALLOW_WRITES=false |
 | Artifacts/PRD/QA external file provider can open | HOLD | No authorized file resolver/content-serving contract |
