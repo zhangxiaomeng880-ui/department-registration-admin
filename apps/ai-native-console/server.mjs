@@ -29,7 +29,7 @@ const sameOrigin=req=>{
 const allowed=(method,path)=>{
   if(method==='GET'){
     if(['/api/runtime/workspaces','/api/runtime/project-types','/api/runtime/project-subtypes','/api/runtime/domain-presets','/api/runtime/aigc-modules','/api/runtime/aigc-ui-labels','/api/runtime/projects'].includes(path))return true;
-    if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
+    if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(audit-events|lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
     if(/^\/api\/runtime\/workspaces\/[a-zA-Z0-9-]{1,64}\/(audit-evidence|global-search)$/.test(path))return true;
   }
   return method==='POST'&&path==='/api/runtime/projects';
