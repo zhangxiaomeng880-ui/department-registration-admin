@@ -46,6 +46,10 @@ async function req(path,opts={}){
 const label=p=>p.projectType==='AIGC_CONTENT'?'AIGC 内容生产':p.projectType==='PRODUCT_DEVELOPMENT'?'产品研发':p.projectType;
 async function bootstrap(){
  const session=await req('/auth/session');
+ const sharedOption=$('loginMode').querySelector('option[value="shared"]');
+ sharedOption.hidden=!session.sharedLoginEnabled;
+ if(!session.sharedLoginEnabled&&$('loginMode').value==='shared')$('loginMode').value='scoped';
+ updateLoginMode();
  if(!session.authenticated){$('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;return;}
  state.writesEnabled=!!session.writesEnabled;
  $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=false;
@@ -223,7 +227,21 @@ function renderAudit(v){
  if(!items.length){root.append(make('p','当前服务端审计索引无结果；不构造浏览器日志。','muted'));return;}
  for(const e of items){const row=make('div','','event');const box=make('div');box.append(make('strong',e.eventType||e.category));box.append(make('p',e.sourceType+' · '+e.sourceId,'mono'));row.append(box,make('small',e.status||'—'));root.append(row);}
 }
-$('loginForm').onsubmit=async e=>{e.preventDefault();text('loginError','');try{await req('/auth/login',{method:'POST',body:JSON.stringify({password:$('password').value})});$('password').value='';await bootstrap();}catch(err){text('loginError','登录失败：'+err.message);}};
+function updateLoginMode(){
+ const shared=$('loginMode').value==='shared';
+ text('loginSecretLabel',shared?'预发共享访问密码':'Runtime 受限凭据');
+ text('loginHint',shared?'仅限预发只读验证，不能创建项目或执行变更。':'Runtime 受限凭据只在登录时发送至服务器；浏览器不保存 Token。');
+ $('password').value='';
+}
+$('loginMode').onchange=updateLoginMode;
+$('loginForm').onsubmit=async e=>{
+ e.preventDefault();text('loginError','');
+ const key=$('loginMode').value==='shared'?'password':'credential';
+ try{
+  await req('/auth/login',{method:'POST',body:JSON.stringify({[key]:$('password').value})});
+  $('password').value='';await bootstrap();
+ }catch(err){$('password').value='';text('loginError','登录失败：'+err.message);}
+};
 $('logout').onclick=async()=>{await req('/auth/logout',{method:'POST',body:'{}'});state.selected=null;await bootstrap();};
 $('refresh').onclick=()=>loadCatalogs();
 $('workspaceSelect').onchange=e=>{state.workspaceId=e.target.value;state.selected=null;loadProjects();};
