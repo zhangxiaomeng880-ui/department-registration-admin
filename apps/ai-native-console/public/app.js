@@ -1,4 +1,14 @@
 const $=id=>document.getElementById(id);
+const readRoute=()=>{
+ const match=location.pathname.match(/^\/projects\/([A-Za-z0-9-]{1,64})\/(stages|assets|audit)$/);
+ return match?{projectId:match[1],panel:match[2]}:null;
+};
+const showPanel=(panel,push=false)=>{
+ const chosen=['stages','assets','audit'].includes(panel)?panel:'stages';
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.panel===chosen));
+ document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==chosen);
+ if(push&&state.selected)history.pushState({projectId:state.selected,panel:chosen},'', '/projects/'+encodeURIComponent(state.selected)+'/'+chosen);
+};
 const state={workspaces:[],projects:[],presets:[],modules:[],type:'',selected:null,workspaceId:null,writesEnabled:false,version:0};
 const AIGC_DOMAINS={
  'AIGC_00_INIT':'aigc-foundation','AIGC_01_DISCOVERY':'aigc-foundation','AIGC_02_PLAN':'aigc-foundation',
@@ -95,7 +105,9 @@ async function loadProjects(focus=null){
   }while(offset<total);
   state.projects=items;
   renderProjects();
-  const id=focus||((state.selected&&items.some(x=>x.id===state.selected))?state.selected:items[0]?.id);
+  const savedRoute=readRoute();
+  const routeId=savedRoute&&items.some(p=>p.id===savedRoute.projectId)?savedRoute.projectId:null;
+  const id=focus||routeId||((state.selected&&items.some(x=>x.id===state.selected))?state.selected:items[0]?.id);
   if(id)await selectProject(id);else{state.selected=null;$('projectBody').hidden=true;$('empty').hidden=false;warn('此工作空间没有真实项目。');}
  }catch(e){state.projects=[];renderProjects();warn('项目列表接口未通过：'+e.message+'。Frontend Sync Gate 仍为 FAIL。');}
 }
@@ -107,7 +119,11 @@ function renderProjects(){
 }
 async function selectProject(id){
  const project=state.projects.find(p=>p.id===id);if(!project)return;
+ const previouslySelected=state.selected;
  state.selected=id;renderProjects();$('empty').hidden=true;$('projectBody').hidden=false;
+ const route=readRoute();
+ const panel=route?.projectId===id?route.panel:'stages';
+ showPanel(panel,previouslySelected!==id&&!route?.projectId);
  text('projectTitle',project.name);text('projectMeta',project.projectKey+' · '+label(project)+' · '+project.id);
  text('projectStatus',project.status);text('currentStage',project.currentStageKey);text('workflowVersion',project.currentWorkflowVersion);text('stageCount','—');
  for(const el of ['stageTable','transitions','modules','auditRows','liveAuditRows'])clear($(el));
@@ -212,7 +228,13 @@ $('logout').onclick=async()=>{await req('/auth/logout',{method:'POST',body:'{}'}
 $('refresh').onclick=()=>loadCatalogs();
 $('workspaceSelect').onchange=e=>{state.workspaceId=e.target.value;state.selected=null;loadProjects();};
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{state.type=b.dataset.type;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProjects();});
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!==b.dataset.panel);});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showPanel(b.dataset.panel,true));
+window.addEventListener('popstate',()=>{
+ const route=readRoute();
+ if(route&&route.projectId!==state.selected&&state.projects.some(p=>p.id===route.projectId)){
+  selectProject(route.projectId);
+ } else showPanel(route?.panel||'stages',false);
+});
 $('newProject').onclick=()=>{if(!state.writesEnabled)return;const sel=$('createPreset');clear(sel);const none=make('option','不自动绑定（保留待绑定状态）');none.value='';sel.append(none);setPresets();$('createDialog').showModal();};
 function setPresets(){
  const sel=$('createPreset');while(sel.children.length>1)sel.lastChild.remove();
