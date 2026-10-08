@@ -142,8 +142,42 @@ function renderStages(v){
  const head=make('div','','gridrow head');['序号','阶段','状态','Gate'].forEach(t=>head.append(make('span',t)));root.append(head);
  for(const s of stages){const row=make('div','','gridrow');row.append(make('small',String(s.sequenceNo)),make('strong',s.displayName||s.stageKey),make('span',s.status,'status '+s.status),make('span',s.lastGateResultId?'ID '+s.lastGateResultId.slice(0,8):'未产生 Gate 结果','mono'));root.append(row);}
 }
+function renderAssetFacts(snapshot){
+ const root=$('modules');clear(root);
+ const assets=Array.isArray(snapshot?.assets)?snapshot.assets:[];
+ const versions=Array.isArray(snapshot?.versions)?snapshot.versions:[];
+ const bindings=Array.isArray(snapshot?.requirementBindings)?snapshot.requirementBindings:[];
+ const title=make('h2','真实资产台账：'+assets.length+' 项资产 / '+versions.length+' 个版本');root.append(title);
+ root.append(make('p','数据源：Runtime AIGC Asset System。ID 与版本状态为服务端实物；文件是否可打开需独立授权验证。','muted'));
+ if(!assets.length){root.append(make('p','尚无服务端正式资产，不会以图片或模拟卡片填充。','muted'));return;}
+ const byAsset=new Map();
+ for(const ver of versions){
+  const existing=byAsset.get(ver.assetId)||[];
+  existing.push(ver);byAsset.set(ver.assetId,existing);
+ }
+ for(const asset of assets){
+  const entry=make('div','','event'),details=make('div');
+  const key=make('strong',asset.displayName||asset.assetKey||'未命名资产');
+  details.append(key,make('p',(asset.assetType||'—')+' · '+(asset.status||'未标记状态')+' · '+(asset.id||'缺少资产 ID'),'mono'));
+  const related=(byAsset.get(asset.id)||[]).sort((a,b)=>(Number(b.versionNo)||0)-(Number(a.versionNo)||0));
+  if(!related.length)details.append(make('p','此资产尚未形成可验证版本','muted'));
+  for(const version of related){
+   const row=make('div','','asset-version');
+   row.append(make('span','v'+version.versionNo+' · '+version.state+' · '+version.id,'mono'));
+   const locator=version.contentLocator||{};
+   const ref=locator.libraryFileId||locator.library_file_id||locator.fileId||locator.file_id||locator.artifactId||locator.artifact_id||null;
+   row.append(make('span',ref?'已登记源引用，待授权解析':'文件引用未登记','status'));
+   details.append(row);
+  }
+  const relevant=bindings.filter(b=>related.some(v=>v.id===b.assetVersionId));
+  if(relevant.length)details.append(make('p','需求绑定：'+relevant.map(b=>b.bindingStatus).join('、'),'muted'));
+  entry.append(details);root.append(entry);
+ }
+}
 function renderModule(name,v){
- const root=$('modules'),wrap=make('div','','event');
+ if(name==='aigc-asset-system'){renderAssetFacts(v);return;}
+ const root=$('modules');clear(root);
+ const wrap=make('div','','event');
  const key=make('div');key.append(make('strong',name==='governance'?'项目治理':'业务领域'));
  key.append(make('p',name==='governance'?'来自 /governance 的服务端状态':'来自后端领域状态，不等于文件内容已可打开','muted'));
  wrap.append(key);root.append(wrap);
