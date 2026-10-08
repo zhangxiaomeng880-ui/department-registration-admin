@@ -67,7 +67,7 @@ test('synthetic full-fixture without signed independent attestation is still HOL
 
 test('Ed25519 signed entire evidence digest is required to become release-ready in isolated test',()=>{
  const m=fakeOnly();
- const {privateKey,publicKey}=createKeyPairSync('ed25519');
+ const {privateKey,publicKey}=generateKeyPairSync('ed25519');
  const digest=computeManifestDigest(m);
  m.externalAttestation={
   source:'INDEPENDENT_RELEASE_VERIFIER',decision:'APPROVE',humanReviewed:true,
@@ -81,7 +81,7 @@ test('Ed25519 signed entire evidence digest is required to become release-ready 
 });
 
 test('after signing a synthetic fixture, any mutation invalidates the release signature',()=>{
- const m=fakeOnly();const {privateKey,publicKey}=createKeyPairSync('ed25519');
+ const m=fakeOnly();const {privateKey,publicKey}=generateKeyPairSync('ed25519');
  const digest=computeManifestDigest(m);
  m.externalAttestation={
   source:'INDEPENDENT_RELEASE_VERIFIER',decision:'APPROVE',humanReviewed:true,
