@@ -137,7 +137,7 @@ test('reused M31 isolated UI test cannot prove M32 real file authorization',()=>
 
 test('recovered C19 Product evidence stays accepted without rerun; actual AIGC closure still blocked',()=>{
  const r=evaluateM325Gate(original);
- const codes=r.blockers.map(x=>x.code);
+ const codes=r.businessAcceptance.blockers.map(x=>x.code);
  assert.ok(!codes.includes('C19_PRODUCT_E2E_EVIDENCE_UNVERIFIED'));
  assert.ok(!codes.includes('C19_PRODUCT_SELF_LOOP_EVIDENCE_UNVERIFIED'));
  assert.ok(codes.includes('C19_AIGC_REAL_E2E_HOLD'));
@@ -151,7 +151,7 @@ test('real AIGC evidence is not equivalent to publication alone',()=>{
   reviewArchive:{id:'fixture'}
  };
  assert.equal(evaluateM325Gate(m).decision,'HOLD');
- assert.ok(evaluateM325Gate(m).blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(evaluateM325Gate(m).businessAcceptance.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
 
 test('real candidate original hash cannot automatically become published Master without Human Source Binding',()=>{
@@ -161,10 +161,10 @@ test('real candidate original hash cannot automatically become published Master 
  delete m.criterion19['C19-A1'].publishedSourceBinding;
  let gate=evaluateM325Gate(m);
  assert.equal(gate.decision,'HOLD');
- assert.ok(gate.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(gate.businessAcceptance.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
  m.criterion19['C19-A1'].publishedSourceBinding={sha256:m.criterion19['C19-A1'].exactSourceMp4Sha256,humanConfirmedUploadSource:false,evidenceRef:'candidate only'};
  gate=evaluateM325Gate(m);
- assert.ok(gate.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(gate.businessAcceptance.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
 
 test('author-confirmed published captioned visuals do not assert uploaded file byte identity or grant Review/Archive',()=>{
@@ -181,8 +181,8 @@ test('author-confirmed published captioned visuals do not assert uploaded file b
  assert.equal(a1.reviewArchive,null);
  const gate=evaluateM325Gate(original);
  assert.equal(gate.decision,'HOLD');
- assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
- assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+ assert.ok(gate.businessAcceptance.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(gate.businessAcceptance.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
 });
 
 test('real internally edited A2 preview with identical audio remains HOLD without Human approval or external results',()=>{
@@ -191,8 +191,8 @@ test('real internally edited A2 preview with identical audio remains HOLD withou
  assert.equal(m.criterion19['C19-A2'].privatePreview?.humanCreativeDecision,null);
  const r=evaluateM325Gate(m);
  assert.equal(r.decision,'HOLD');
- assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
- assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(r.businessAcceptance.blockers.some(x=>x.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+ assert.ok(r.businessAcceptance.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
 
 test('internal A0 preview must not become a real externally executed AIGC next round',()=>{
@@ -207,6 +207,18 @@ test('internal A0 preview must not become a real externally executed AIGC next r
  assert.equal(a2.attestation,null);
  const r=evaluateM325Gate(original);
  assert.equal(r.decision,'HOLD');
- assert.ok(r.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
- assert.ok(r.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+ assert.ok(r.businessAcceptance.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(r.businessAcceptance.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+});
+
+
+test('AIGC real-world publication is independent of platform release readiness',()=>{
+ const m=fakeOnly();const platform=evaluateM325Gate(m);
+ assert.equal(platform.businessAcceptance.decision,'PASS');
+ m.criterion19['C19-A1'].status='HOLD';m.criterion19['C19-A2'].status='HOLD';
+ m.flows.aigc_publish_performance_review_next_round={status:'HOLD'};
+ const split=evaluateM325Gate(m);
+ assert.deepEqual(split.blockers,platform.blockers);
+ assert.equal(split.businessAcceptance.decision,'HOLD');
+ assert.ok(split.businessAcceptance.blockerCount>=3);
 });
