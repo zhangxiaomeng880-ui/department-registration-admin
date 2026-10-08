@@ -340,9 +340,33 @@ async function loadDetail(route,project,serial){
     const box=make('div','','event');
     box.append(make('strong','v'+v.versionNo+' · '+v.state));
     box.append(make('span',source?'已登记源引用，待授权解析':'文件引用未登记','status'));
-    box.append(make('small','版本 ID · '+v.id,'mono'));root.append(box);
+    box.append(make('small','版本 ID · '+v.id,'mono'));
+    if(locator.provider==='S3_COMPATIBLE'&&locator.objectKey){
+      const status=make('span','尚未校验当前权限','muted');
+      const verify=make('button','验证文件授权','outline');
+      verify.addEventListener('click',async()=>{
+        status.textContent='正在验证 Runtime 文件权限…';
+        verify.disabled=true;
+        const url=path+'/assets/'+encodeURIComponent(item.id)+'/versions/'+encodeURIComponent(v.id);
+        try{
+          const authorization=await req(url+'/access');
+          if(authorization.access!=='READY'||authorization.versionId!==v.id||
+             authorization.contentPath!==url+'/content')throw Error('FILE_ACCESS_CONTRACT_INVALID');
+          const download=make('a','下载已授权文件','outline');
+          download.href=url+'/content';download.download='';download.rel='noopener';
+          box.append(download);
+          status.textContent='已确认访问许可；下载时将再次校验权限和 SHA-256';
+        }catch(e){
+          status.textContent='暂不可打开：'+e.message+'。未生成下载链接。';
+        }
+      });
+      box.append(verify,status);
+    }else{
+      box.append(make('span','该版本尚未迁入受控对象存储','muted'));
+    }
+    root.append(box);
    }
-   root.append(make('p','PRD/QA/图片的授权文件打开服务尚未接通，不能展示无效下载链接。','muted'));
+   root.append(make('p','仅能下载已经迁入受控对象存储、通过权利与 QA 检查的版本；历史 ChatGPT Library / 外部文档仍待授权适配。','muted'));
   }
  }catch(e){if(serial===state.routeVersion)root.append(make('p','详情读取失败：'+e.message,'muted'));}
 }
