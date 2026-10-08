@@ -22,6 +22,13 @@ try{
    assert.equal(data.writesEnabled,false);
    assert.equal(data.sharedLoginEnabled,true);
    assert.equal(data.mode,null);
+   // Invalid input cannot create a browser session; do not use real secrets.
+   if(viewport.width>500){
+    await page.locator('#password').fill('invalid-test-credential');
+    await page.getByRole('button',{name:'进入工作台'}).click();
+    await page.locator('#loginError').getByText('INVALID_CREDENTIALS').waitFor();
+    assert.equal(await page.locator('#workspace').isVisible(),false);
+   }
    // A non-existent project ID is used only to verify addressable page shell.
    // It must never surface project data without an authenticated session.
    const deep='/projects/00000000-0000-4000-8000-000000000999/assets';
