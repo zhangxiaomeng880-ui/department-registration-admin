@@ -80,3 +80,43 @@ test('staging login throttling rejects the sixth bad password',async()=>{
   assert.equal(blocked.status,429);
  }finally{await a.close();}
 });
+
+test('read-only staging diagnostic proves server credential + real contract shape without leaking any IDs',async()=>{
+ const paths=[];
+ const response=async(url)=>{
+  const p=new URL(url).pathname;paths.push(p);
+  if(p==='/api/runtime/workspaces')return fakeResponse({data:[{id:'workspace1'}]});
+  if(p==='/api/runtime/projects')return fakeResponse({data:{workspaceId:'workspace1',total:1,items:[{id:'project1'}]}});
+  if(p==='/api/runtime/projects/project1/lifecycle')return fakeResponse({data:{stages:[{stageKey:'AIGC_00_INIT'}]}});
+  if(p==='/api/runtime/projects/project1/audit-events')return fakeResponse({data:{source:'AUDIT_LOGS_PRIMARY',items:[]}});
+  return fakeResponse({error:'NOT_FOUND'},404);
+ };
+ const s=createConsoleServer({env:{...env,CONSOLE_RUNTIME_PROBE_ENABLED:'true'},fetchImpl:response});
+ await new Promise(r=>s.listen(0,'127.0.0.1',r));
+ const url='http://127.0.0.1:'+s.address().port;
+ try{
+  const r=await fetch(url+'/healthz/runtime');
+  assert.equal(r.status,200);
+  const body=await r.json();
+  assert.equal(body.status,'ready');
+  assert.deepEqual(body.checks,{authorizedWorkspaces:'PASS',projectList:'PASS',lifecycle:'PASS',primaryAudit:'PASS'});
+  assert.equal(paths.length,4);
+  assert.ok(!JSON.stringify(body).includes('workspace1'));
+  assert.ok(!JSON.stringify(body).includes('project1'));
+  assert.ok(!JSON.stringify(body).includes('staging-secret'));
+ }finally{await new Promise(resolve=>s.close(resolve));}
+});
+test('staging diagnostic fails closed on invalid Runtime auth',async()=>{
+ const s=createConsoleServer({
+   env:{...env,CONSOLE_RUNTIME_PROBE_ENABLED:'true'},
+   fetchImpl:async()=>fakeResponse({error:'RUNTIME_UNAUTHORIZED'},401)
+ });
+ await new Promise(r=>s.listen(0,'127.0.0.1',r));
+ try{
+  const r=await fetch('http://127.0.0.1:'+s.address().port+'/healthz/runtime');
+  assert.equal(r.status,503);
+  const body=await r.json();
+  assert.equal(body.error,'UPSTREAM_HTTP_401');
+  assert.equal(body.checks.projectList,'BLOCKED');
+ }finally{await new Promise(resolve=>s.close(resolve));}
+});
