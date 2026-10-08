@@ -34,6 +34,7 @@ const fakeOnly=()=>{ // Synthetic fixture for contract tests; NEVER a real relea
  // The following is an isolated synthetic fixture, never an actual C19 receipt.
  m.criterion19['C19-A1']={
   status:'PASS_CLOSED',exactSourceMp4Sha256:'f'.repeat(64),
+  publishedSourceBinding:{sha256:'f'.repeat(64),humanConfirmedUploadSource:true,evidenceRef:'SYNTHETIC_UPLOAD_EVIDENCE'},
   humanReviewAttestation:{mode:'HUMAN',decision:'APPROVED',synthetic:false},
   reviewArchive:{id:'SYNTHETIC_TEST_RECEIPT'}
  };
@@ -151,4 +152,17 @@ test('real AIGC evidence is not equivalent to publication alone',()=>{
  };
  assert.equal(evaluateM325Gate(m).decision,'HOLD');
  assert.ok(evaluateM325Gate(m).blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+});
+
+test('real candidate original hash cannot automatically become published Master without Human Source Binding',()=>{
+ const m=fakeOnly();
+ m.criterion19['C19-A1'].sourceCandidate=original.criterion19['C19-A1'].sourceCandidate;
+ m.criterion19['C19-A1'].exactSourceMp4Sha256=original.criterion19['C19-A1'].sourceCandidate.sha256;
+ delete m.criterion19['C19-A1'].publishedSourceBinding;
+ let gate=evaluateM325Gate(m);
+ assert.equal(gate.decision,'HOLD');
+ assert.ok(gate.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+ m.criterion19['C19-A1'].publishedSourceBinding={sha256:m.criterion19['C19-A1'].exactSourceMp4Sha256,humanConfirmedUploadSource:false,evidenceRef:'candidate only'};
+ gate=evaluateM325Gate(m);
+ assert.ok(gate.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
