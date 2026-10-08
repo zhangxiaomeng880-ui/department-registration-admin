@@ -17,6 +17,13 @@ try{
    const data=await session.json();
    assert.equal(data.authenticated,false);
    assert.equal(data.writesEnabled,false);
+   // A non-existent project ID is used only to verify addressable page shell.
+   // It must never surface project data without an authenticated session.
+   const deep='/projects/00000000-0000-4000-8000-000000000999/assets';
+   const routed=await page.goto(url+deep,{waitUntil:'domcontentloaded',timeout:30000});
+   assert.equal(routed.status(),200);
+   await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
+   assert.equal(await page.locator('#workspace').isVisible(),false);
    console.log('STAGING_BROWSER_LOGIN_SHELL_PASS viewport='+viewport.width+'x'+viewport.height+' real_https=true writes=false');
   }finally{await page.close();}
  }
