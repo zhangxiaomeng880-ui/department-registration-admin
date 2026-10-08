@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root=dirname(fileURLToPath(import.meta.url));
-const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8'};
-const ASSETS={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/style.css':'style.css'};
+const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8'};
+const ASSETS={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css'};
 
 const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
