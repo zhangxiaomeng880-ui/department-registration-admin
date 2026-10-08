@@ -95,3 +95,14 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - 此次不是对优化方向、下一轮发布、版权转移或 Production 晋级的批准。**既有 C19-P1/P2 PASS 不重跑**。
 
 当前断点：`M32_5_C19_A1_HUMAN_VISUAL_CONFIRMED__ORIGINAL_UPLOAD_BYTE_HOLD__HUMAN_REVIEW_HOLD__C19_A2_HOLD__M32_4_4_HOLD`。
+
+
+## 2026-10-08｜C19-A2 私有剪辑候选已实做
+
+- 基于用户已确认视觉版本的 Library 原始 MP4（本地字节哈希 `d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890`），复核 `0.3s` 无字幕、`1.0s` 淡入、`1.5s` 清晰。纠正先前“到第 2 秒才有字幕”的不精确说法，不能将 2s 退出全部归因于字幕偏晚。
+- **实际输出** 非破坏性本地私有样片 `C19_A1_KF01_OPENING_REVEAL_V0.1_CANDIDATE.mp4`，首 1.8 秒轻微数字近景→原景（最大约 1.16x），以验证画面尺度变量而非改故事、人物、台词或音轨。只在工作容器，不外发、不写入正式资产目录。
+- **技术 QA 实测**：12.000 秒、1080×1920、25fps、300 帧、H.264 + AAC；候选 2,356,440 字节，文件 SHA-256 `ad2801f33838750dd7512edae400df285ed532d436a6b5c861b646b691ebd801`。源与候选完整 AAC bitstream hash 同为 `17dc02a1d10455e8b43dc49486e87a921341fc12bee9b3efbc2264c84f6704a9`；2s 后画面对源文件 SSIM All≈0.990185，属于转码差异范围，**不是创意或传播效果 PASS**。
+- 新增 `C19_A2_LOCAL_OPENING_REVEAL_V0.1_READY.md` 记录真实候选、技术验收和门禁；`M32_5_EVIDENCE_V1_CURRENT.json` 仅提升到 `PRIVATE_PREVIEW_TECH_QA_PASS`，无创作批准、无 A2 真实发布或次轮表现。
+- **仍 HOLD**：原已发布源 MP4 精确上传字节映射、Human Creative Review、Archive、A2 真人下一轮及外部结果、M32.4.4 正式 Release Trace、Production Gate。原发布无需重做，P1/P2 不重跑。
+
+续跑检查点：`M32_5_SOURCE_UPLOAD_MAPPING_HOLD__A2_LOCAL_CANDIDATE_TECH_PASS__A2_HUMAN_CREATIVE_GATE__REAL_PUBLICATION_HOLD__M32_4_4_TRACE_HOLD`。
