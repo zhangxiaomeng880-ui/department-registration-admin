@@ -118,3 +118,12 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - M32.5 证据合约测试 Run [37781673439](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37781673439) **14/14 PASS**；Final Gate 仍 **HOLD / 18 blocker 条目**。既有 C19-P1/P2 PASS 复用。
 
 当前检查点：`M32_5_C19_A0_PREVIEW_QA_PASS__PUBLISHED_MASTER_ORIGINAL_BYTES_HOLD__HUMAN_REVIEW_HOLD__C19_A2_EXTERNAL_NEXT_ROUND_HOLD__M32_4_4_TRACE_HOLD`。未改变任何 Production/Staging 对外服务或正式发布内容。
+
+## 2026-10-08｜M32.5 平台 Gate 与 C19 内容外发验收正式解耦
+
+- 确认原审核器误将 C19-A1/A2 的实际短剧发布结果和其 AIGC 外发 E2E 同列平台晋级硬门槛，导致研发主线与内容制作混用。
+- 本轮直接修改 `m32-5-final-gate.mjs`：保留 `CRITERION_19_REAL_BUSINESS_E2E` 独立 `businessAcceptance` 判定；移除 C19-A1/A2/C19-AIGC 外发流对 `M32.5_WORKBENCH_FINAL_RELEASE` 平台 blockers 的直接耦合。Product C19 P1/P2 的历史 PASS 仍独立复用，不伪造视频发布结果。
+- GitHub CI Run [37787620198](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37787620198)：**15/15 tests PASS**；当前平台真实 Gate **HOLD / 15 blockers**，独立 C19 业务 **HOLD / 3 blockers**。没有删去或跳过 M32.1–M32.4.4、平台真实受限账号 E2E、release trace、回滚、生产授权、独立签名等平台证明。
+- 后续默认执行平台发布主线；C19 外部视频发布不再自动推进、不会用于替代平台发布证据。Production 未经明确授权不得变更。
+
+检查点：`M32_5_PLATFORM_RELEASE_SPLIT_PASS_TESTED__PLATFORM_15_HOLD__C19_BUSINESS_3_HOLD__M32_4_4_EVIDENCE_TRACE_HOLD`。
