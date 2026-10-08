@@ -13,3 +13,6 @@ export const isCurrentKnowledgeRead=(request,view)=>
   request.workspaceId===view.workspaceId&&
   request.projectId===view.projectId&&
   view.page==='knowledge';
+
+export const isCurrentProjectList=(request,view)=>
+  request.nonce===view.nonce&&request.workspaceId===view.workspaceId;
