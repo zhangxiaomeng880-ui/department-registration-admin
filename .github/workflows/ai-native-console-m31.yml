@@ -40,3 +40,6 @@ jobs:
       - name: Headless browser interactions with isolated contract data
         working-directory: apps/ai-native-console
         run: node tests/browser.e2e.mjs
+      - name: Real staging browser shell (desktop and mobile; unauthenticated)
+        working-directory: apps/ai-native-console
+        run: node tests/staging-browser-smoke.mjs
