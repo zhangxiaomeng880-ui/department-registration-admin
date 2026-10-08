@@ -106,3 +106,15 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - **仍 HOLD**：原已发布源 MP4 精确上传字节映射、Human Creative Review、Archive、A2 真人下一轮及外部结果、M32.4.4 正式 Release Trace、Production Gate。原发布无需重做，P1/P2 不重跑。
 
 续跑检查点：`M32_5_SOURCE_UPLOAD_MAPPING_HOLD__A2_LOCAL_CANDIDATE_TECH_PASS__A2_HUMAN_CREATIVE_GATE__REAL_PUBLICATION_HOLD__M32_4_4_TRACE_HOLD`。
+
+
+## 2026-10-08｜C19-A1 A0 首帧字幕内部预览 QA / 真实发布时间证据继续 HOLD
+
+- 已使用之前作者确认的字幕版 `kf01_tonight_v01.mp4`（Library 只读源；SHA-256 `d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890`）制作仅在工作目录的 `C19_A1_A0_FIRST_FRAME_CAPTION_PREVIEW_ONLY.mp4`，非正式 Master、不上传、不发布，源文件不覆盖。
+- 逐帧纠偏：原片字幕约 0.75s 已开始淡入，约 1s 可读，而非旧评审粗估“2 秒才出现”；实际 A0 仅对“首帧字幕可读性”做变化。
+- 预览保留 12.000s；预览 SHA-256 `57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4`，原片与预览 AAC 音轨 demux SHA 同为 `792081cce95b0dd592bf4476bd1ddc4e5be92c6900d3e000a481836282355a02`；视频重编码不代表画质无损。
+- 真实证据和内部预览分离：新增 `C19_A1_A0_OPENING_PREVIEW_V1_REVIEW_ONLY.md`，并同步 `M32_5_EVIDENCE_V1_CURRENT.json`。**A0 TECH QA PASS ≠ Human Review 决策/真实发布/表现/执行自闭环 PASS。**
+- 对上传原件做本地 metadata 核验未发现平台上传映射、上传前文件回执，Google Drive 原始文件名精确搜索无结果。此轮没有补齐上传前原始成片和平台发布的字节级同一性证据；保留 `exactSourceMp4Sha256=null`，不将作者此前对“视觉版本”的确认扩展成上传原文件身份确认。
+- M32.5 证据合约测试 Run [37781673439](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37781673439) **14/14 PASS**；Final Gate 仍 **HOLD / 18 blocker 条目**。既有 C19-P1/P2 PASS 复用。
+
+当前检查点：`M32_5_C19_A0_PREVIEW_QA_PASS__PUBLISHED_MASTER_ORIGINAL_BYTES_HOLD__HUMAN_REVIEW_HOLD__C19_A2_EXTERNAL_NEXT_ROUND_HOLD__M32_4_4_TRACE_HOLD`。未改变任何 Production/Staging 对外服务或正式发布内容。
