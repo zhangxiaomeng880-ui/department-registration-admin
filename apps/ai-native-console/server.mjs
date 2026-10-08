@@ -39,11 +39,57 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
+  let probeCache=null;
+  const runtimeProbe=async()=>{
+    if(probeCache && Date.now()<probeCache.expires)return probeCache;
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),14000);
+    const checks={authorizedWorkspaces:'BLOCKED',projectList:'BLOCKED',lifecycle:'NOT_APPLICABLE',primaryAudit:'NOT_APPLICABLE'};
+    try{
+      const query=async path=>{
+        const res=await fetchImpl(base+path,{
+          method:'GET',redirect:'error',signal:controller.signal,
+          headers:{'authorization':'Bearer '+env.RUNTIME_API_TOKEN,'accept':'application/json'}
+        });
+        if(!res.ok)throw error('UPSTREAM_HTTP_'+res.status,503);
+        const body=await res.json();
+        if(!body||!Object.hasOwn(body,'data'))throw error('UPSTREAM_CONTRACT_INVALID',503);
+        return body.data;
+      };
+      const workspaces=await query('/api/runtime/workspaces');
+      if(!Array.isArray(workspaces))throw error('WORKSPACE_CONTRACT_INVALID',503);
+      checks.authorizedWorkspaces='PASS';
+      if(!workspaces.length)throw error('WORKSPACE_EMPTY',503);
+      const workspaceId=workspaces[0].id;
+      if(typeof workspaceId!=='string')throw error('WORKSPACE_ID_INVALID',503);
+      const listing=await query('/api/runtime/projects?workspaceId='+encodeURIComponent(workspaceId)+'&limit=10');
+      if(!Array.isArray(listing?.items)||!Number.isSafeInteger(listing.total))throw error('PROJECT_LIST_CONTRACT_INVALID',503);
+      checks.projectList='PASS';
+      if(listing.items.length){
+        const id=listing.items[0].id;
+        if(typeof id!=='string')throw error('PROJECT_ID_INVALID',503);
+        const lifecycle=await query('/api/runtime/projects/'+encodeURIComponent(id)+'/lifecycle');
+        if(!Array.isArray(lifecycle?.stages))throw error('LIFECYCLE_CONTRACT_INVALID',503);
+        checks.lifecycle='PASS';
+        const audit=await query('/api/runtime/projects/'+encodeURIComponent(id)+'/audit-events?limit=3');
+        if(audit?.source!=='AUDIT_LOGS_PRIMARY'||!Array.isArray(audit.items))throw error('AUDIT_CONTRACT_INVALID',503);
+        checks.primaryAudit='PASS';
+      }
+      probeCache={expires:Date.now()+30000,status:200,result:{status:'ready',checks}};
+    }catch(e){
+      probeCache={expires:Date.now()+10000,status:503,result:{status:'blocked',checks,error:e.code||'UPSTREAM_UNAVAILABLE'}};
+    }finally{clearTimeout(timer);}
+    return probeCache;
+  };
   const sess=req=>{const id=cookies(req).ain_session;const s=id&&sessions.get(id);if(!s||s.exp<Date.now()){if(id)sessions.delete(id);return null;}return s;};
   return http.createServer(async(req,res)=>{
     try{
       const url=new URL(req.url,'http://internal.local'),path=url.pathname;
       if(req.method==='GET'&&path==='/healthz')return json(res,200,{status:'ok',mode:'STAGING_CONSOLE',runtimeConfigured:true});
+      // Read-only staging diagnostics: no project names, IDs, counts or secrets in response.
+      if(req.method==='GET'&&path==='/healthz/runtime'){
+        if(env.CONSOLE_RUNTIME_PROBE_ENABLED!=='true')throw error('NOT_FOUND',404);
+        const probe=await runtimeProbe();return json(res,probe.status,probe.result);
+      }
       if(req.method==='GET'&&path==='/auth/session')return json(res,200,{authenticated:!!sess(req),writesEnabled:env.CONSOLE_ALLOW_WRITES==='true',environment:'STAGING'});
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
