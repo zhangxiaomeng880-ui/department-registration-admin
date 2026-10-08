@@ -35,7 +35,7 @@ const allowed=(method,path)=>{
   return method==='POST'&&path==='/api/runtime/projects';
 };
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
-  if(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN||!env.RUNTIME_API_BASE_URL)throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
+  if(!env.RUNTIME_API_BASE_URL||(env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
@@ -90,33 +90,61 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         if(env.CONSOLE_RUNTIME_PROBE_ENABLED!=='true')throw error('NOT_FOUND',404);
         const probe=await runtimeProbe();return json(res,probe.status,probe.result);
       }
-      if(req.method==='GET'&&path==='/auth/session')return json(res,200,{authenticated:!!sess(req),writesEnabled:env.CONSOLE_ALLOW_WRITES==='true',environment:'STAGING'});
+      if(req.method==='GET'&&path==='/auth/session'){
+        const s=sess(req);
+        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&env.CONSOLE_ALLOW_WRITES==='true',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',environment:'STAGING'});
+      }
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
         if(req.headers['content-type']?.split(';')[0]!=='application/json')throw error('JSON_CONTENT_TYPE_REQUIRED',415);
       }
       if(req.method==='POST'&&path==='/auth/login'){
-        const ip=String(req.headers['x-forwarded-for']||req.socket.remoteAddress||'unknown').split(',')[0].trim();
-        const saved=failed.get(ip)||{count:0,until:0};
-        const f=Date.now()>=saved.until?{count:0,until:0}:saved;
-        if(f.count>=5)throw error('LOGIN_RATE_LIMITED',429);
+        // The app never stores a Runtime credential in browser storage or
+        // returns it to a client. All subsequent calls use an HttpOnly session.
+        const ip=String(req.socket.remoteAddress||'unknown');
+        const previous=failed.get(ip)||{count:0,until:0};
+        const strikes=Date.now()>=previous.until?{count:0,until:0}:previous;
+        if(strikes.count>=5)throw error('LOGIN_RATE_LIMITED',429);
         const body=await readJson(req);
-        if(!equals(String(body.password||''),String(env.CONSOLE_ADMIN_PASSWORD))){
-          failed.set(ip,{count:f.count+1,until:Date.now()+900000});throw error('INVALID_CREDENTIALS',401);
+        let credential=null,mode=null;
+        if(typeof body.credential==='string'&&body.credential){
+          if(!/^rtk_[a-f0-9]{12}_[A-Za-z0-9_-]{30,80}$/.test(body.credential)){
+            throw error('INVALID_CREDENTIALS',401);
+          }
+          credential=body.credential;
+          const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+          try{
+            const reply=await fetchImpl(base+'/api/runtime/workspaces',{
+              method:'GET',redirect:'error',signal:controller.signal,
+              headers:{'authorization':'Bearer '+credential,'accept':'application/json'}
+            });
+            if(reply.status!==200)throw error('INVALID_CREDENTIALS',401);
+            const response=await reply.json();
+            if(!Array.isArray(response?.data)||!response.data.length)throw error('SCOPED_WORKSPACE_REQUIRED',403);
+            mode='scoped';
+          }finally{clearTimeout(timeout);}
+        }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&
+          env.CONSOLE_ADMIN_PASSWORD&&equals(body.password,env.CONSOLE_ADMIN_PASSWORD)){
+          credential=env.RUNTIME_API_TOKEN;
+          mode='staging-shared-readonly';
+        }else{
+          failed.set(ip,{count:strikes.count+1,until:Date.now()+900000});
+          throw error('INVALID_CREDENTIALS',401);
         }
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
-        sessions.set(sid,{exp:Date.now()+8*3600*1000});
-        return json(res,200,{authenticated:true},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800${secure}`});
+        sessions.set(sid,{exp:Date.now()+8*3600*1000,mode,credential});
+        return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800${secure}`});
       }
       if(req.method==='POST'&&path==='/auth/logout'){
         const sid=cookies(req).ain_session;if(sid)sessions.delete(sid);
         return json(res,200,{authenticated:false},{'set-cookie':`ain_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`});
       }
       if(path.startsWith('/api/')){
-        if(!sess(req))throw error('CONSOLE_UNAUTHORIZED',401);
+        const session=sess(req);
+        if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
         if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
-        if(req.method!=='GET'&&env.CONSOLE_ALLOW_WRITES!=='true')throw error('STAGING_WRITES_DISABLED',403);
+        if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
         const body=req.method==='POST'?await readJson(req):null;
         if(req.method==='POST'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
         const controller=new AbortController();
@@ -124,12 +152,18 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         try{
           const result=await fetchImpl(base+path+url.search,{
             method:req.method,headers:{
-              'authorization':'Bearer '+env.RUNTIME_API_TOKEN,
+              'authorization':'Bearer '+session.credential,
               'accept':'application/json',...(body?{'content-type':'application/json'}:{})
             },...(body?{body:JSON.stringify(body)}:{}),signal:controller.signal
           });
           const raw=(await result.text()).slice(0,1048576);
           let payload;try{payload=JSON.parse(raw);}catch{payload={error:'RUNTIME_NON_JSON_RESPONSE'};}
+          if(result.status===401||result.status===403){
+            if(session.mode==='scoped'){
+              const sid=cookies(req).ain_session;
+              if(sid)sessions.delete(sid);
+            }
+          }
           return json(res,result.status,payload);
         }finally{clearTimeout(timeout);}
       }
