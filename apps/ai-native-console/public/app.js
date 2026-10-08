@@ -203,6 +203,9 @@ function renderTasks(g,id){
 const AIGC_STAGE_ORDER=Object.keys(AIGC_DOMAINS);
 function verifyAigcStageStructure(project,lifecycle){
  if(!project.workflowTemplateId)return '未通过：项目尚未绑定正式工作流模板。';
+ if(lifecycle?.template?.id!==project.workflowTemplateId||lifecycle?.project?.workflowTemplateId!==project.workflowTemplateId||
+    lifecycle?.template?.templateKey!=='STANDARD:AIGC_CONTENT_STANDARD'||String(lifecycle?.template?.version)!=='2.4')
+   return '未通过：工作流模板身份或版本与正式 AIGC V2.4 预设不一致。';
  if(!Array.isArray(lifecycle?.stages))return '未通过：真实工作流阶段未返回。';
  const stages=lifecycle.stages;
  if(stages.length!==AIGC_STAGE_ORDER.length)return '未通过：当前真实阶段 '+stages.length+'/15；不能把阶段数量当作已验收。';
