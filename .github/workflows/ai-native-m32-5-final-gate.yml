@@ -40,4 +40,6 @@ jobs:
         run: node apps/ai-native-console/release/m32-5-final-gate.mjs
       - name: Require formal release evidence for explicit dispatch (fails CLOSED)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.require_release_ready }}
+        env:
+          M32_RELEASE_VERIFIER_PUBLIC_KEY: ${{ vars.M32_RELEASE_VERIFIER_PUBLIC_KEY }}
         run: node apps/ai-native-console/release/m32-5-final-gate.mjs --require-pass
