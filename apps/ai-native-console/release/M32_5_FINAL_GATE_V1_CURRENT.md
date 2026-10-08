@@ -84,3 +84,14 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - `M32.4.4` 正式 Release Trace 仍未在可访问的 GitHub、Google Drive 和既往信息中找到；沿用上一轮明确的 `HOLD_NOT_FOUND`，禁止用 M31.5 的 CI/部署替代。
 
 **下一检查点**：`M32_5_C19_A1_SOURCE_CANDIDATE_SHA_VERIFIED__HUMAN_UPLOAD_SOURCE_CONFIRMATION_HOLD__A2_REVIEW_DECISION_HOLD__M32_4_4_TRACE_HOLD`。原文件与发布事实不做不可逆修改；人工作出准确“这是发布时上传前 MP4”的确认及创作方向确认后，才允许独立的源身份归档/Review 迁移。
+
+
+## 2026-10-08｜C19-A1 人工视觉版本确认证据收口
+
+- 作者在此轮对“实际小红书发布的是画面底部带『昨天，我又梦到你了。』字幕的那组吗？”明确答复：**是的**。其确认范围是视觉画面/字幕版本，`HUMAN_VISUAL_IDENTITY_CONFIRMATION = PASS`。
+- 唯一正式确认入口：`C19_A1_HUMAN_VISUAL_IDENTITY_CONFIRMATION_V1_CURRENT.md`；对应真实 Library 候选是 `kf01_tonight_v01.mp4`，原始候选文件 SHA-256 为 `d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890`。
+- 用户确认**不包括**“平台上传前的原始 MP4 字节一定等于该本地文件”，故 `exactSourceMp4Sha256=null`、`humanConfirmedUploadSource=false`，不写入 Archive 正式字段。与此确认同时新增的对照文档只为非唯一辅助证据，不形成第二套正式 CURRENT 状态。
+- 已同步 `M32_5_EVIDENCE_V1_CURRENT.json` 的 `criterion19.C19-A1.publishedVisualIdentity.status=PASS_HUMAN_CONFIRMED`，并保留 source byte / Human Review / C19-A2 全部 HOLD。
+- 此次不是对优化方向、下一轮发布、版权转移或 Production 晋级的批准。**既有 C19-P1/P2 PASS 不重跑**。
+
+当前断点：`M32_5_C19_A1_HUMAN_VISUAL_CONFIRMED__ORIGINAL_UPLOAD_BYTE_HOLD__HUMAN_REVIEW_HOLD__C19_A2_HOLD__M32_4_4_HOLD`。
