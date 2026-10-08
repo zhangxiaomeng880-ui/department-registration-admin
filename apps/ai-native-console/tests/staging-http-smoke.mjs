@@ -34,4 +34,8 @@ await check(runtimeUrl+'/api/runtime/projects?workspaceId=00000000-0000-4000-800
 await check(runtimeUrl+'/api/runtime/me',401,x=>assert.equal(x.error,'RUNTIME_UNAUTHORIZED'));
 await check(consoleUrl+'/healthz/runtime',404,x=>assert.equal(x.error,'NOT_FOUND'));
 
-console.log('M31_STAGING_HTTP_SMOKE_PASS all=7; scoped identity endpoint auth enforced; temporary probe disabled; browser write NOT TESTED');
+const accessPath='/api/runtime/projects/11111111-1111-4111-8111-111111111111/assets/22222222-2222-4222-8222-222222222222/versions/33333333-3333-4333-8333-333333333333/access';
+await check(consoleUrl+accessPath,401,x=>assert.equal(x.error,'CONSOLE_UNAUTHORIZED'));
+await check(runtimeUrl+accessPath,401,x=>assert.equal(x.error,'RUNTIME_UNAUTHORIZED'));
+await check(consoleUrl+accessPath.replace('/access','/content'),401,x=>assert.equal(x.error,'CONSOLE_UNAUTHORIZED'));
+console.log('M31_STAGING_HTTP_SMOKE_PASS all=10; scoped identity endpoint auth enforced; temporary probe disabled; browser write NOT TESTED');
