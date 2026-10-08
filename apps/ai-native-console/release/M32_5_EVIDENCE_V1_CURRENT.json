@@ -126,7 +126,8 @@
     "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted.",
     "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied.",
     "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop.",
-    "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result."
+    "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result.",
+    "V0.2 A0 candidate repaired prior overlapping duplicate subtitles: new overlay ends before original fades in; technical QA PASS, editorial gate still HOLD; never published."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -298,6 +299,19 @@
         "humanCreativeDecision": null,
         "externalPublication": null,
         "realNextRoundMetrics": null
+      },
+      "a0VisualQA": {
+        "status": "V0_2_TECH_PASS_DOUBLE_OVERLAY_FIXED__EDITORIAL_HOLD",
+        "selectedByHuman": true,
+        "originalV01Sha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
+        "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4",
+        "currentCandidateSha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+        "durationSeconds": 12,
+        "frameCount": 300,
+        "audioStreamUnchanged": true,
+        "qaEvidenceRef": "C19_A1_A0_FINAL_VISUAL_QA_V1_CURRENT.md",
+        "humanFinalCreativeAcceptance": null,
+        "externalReleaseApproved": false
       }
     }
   }
