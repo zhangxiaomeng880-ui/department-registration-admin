@@ -72,3 +72,15 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - **未修改正式影视素材、没有上传 S3、没有实际发布下一轮、未修改 Railway Staging / Production**。仅完成了真实证据文件候选恢复、评审准备及受控门禁增强。
 
 本轮检查点：`M32_5_C19_P1_P2_REUSED__A1_REAL_12S_SOURCE_CANDIDATES_HASHED__PUBLISHED_SOURCE_HUMAN_BINDING_HOLD__A2_DECISION_HOLD__M32_4_4_TRACE_HOLD`。
+
+## 2026-10-08｜C19-A1 本地候选源 SHA 及影像互证（第三轮，继承前轮 PASS）
+
+- 从用户 Library 的真实 MP4 只读 materialize 并用 `ffprobe`、`sha256sum`、抽帧逐一核验 4 个候选。**已找到同一夜海边、12.000 秒、1080×1920、标题“昨天，我又梦到你了”的强匹配源候选 `kf01_tonight_v01.mp4`**，实际字节大小 `4011967`，SHA-256 **`d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890`**；H.264 + AAC (48kHz stereo)，300 video frames。
+- 发布数据页真实截图的封面缩略图与候选文件均呈相同的夜晚海边林夏场景，标题亦一致；**匹配的是内容/封面，而不是已验证平台上传源文件字节身份**。用户未就此具体本地 MP4 做上传源确认，原始导出/上传流水线回执缺失。正确状态是 `SOURCE_CANDIDATE_HASH_VERIFIED / UPLOADED_SOURCE_BINDING_HOLD`，`exactSourceMp4Sha256` 继续为 `null`。
+- `KF01_jinwanbuganlu_micro_motion_v01.mp4` 也是 12 秒母画面候选，但不同分辨率且没有相同标题叠字；不得替代实际发布成片。
+- 已保存 `C19_A1_SOURCE_REVIEW_AND_A2_NEXT_ROUND_V1_CURRENT.md`：小红书真实 202 曝光/88 观看、42.4% 2秒退出与 11.7% 完播背景下的两种优化方向（提前前 2 秒情绪钩子；或先调封面表达）。**方案仅供 Human Review，不改母版/人物 Identity、不重新发布、未生成下一轮视频**。
+- M32.5 审核器新增 `publishedSourceBinding.sha256` + `humanConfirmedUploadSource=true` + `evidenceRef` 三项，且需与 `exactSourceMp4Sha256` 一致；不能直接将 sourceCandidate 的真实 hash 复制成发行正式 Master 证明。
+- [GitHub CI 37779682708](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37779682708) **11/11 PASS**；`M32.5 FINAL = HOLD / 18 blockers` 不变（这 18 项包含先前尚无的 M32 upstream 正式证据及真实 E2E 等）。C19-P1/P2 复用 PASS，不重跑。
+- `M32.4.4` 正式 Release Trace 仍未在可访问的 GitHub、Google Drive 和既往信息中找到；沿用上一轮明确的 `HOLD_NOT_FOUND`，禁止用 M31.5 的 CI/部署替代。
+
+**下一检查点**：`M32_5_C19_A1_SOURCE_CANDIDATE_SHA_VERIFIED__HUMAN_UPLOAD_SOURCE_CONFIRMATION_HOLD__A2_REVIEW_DECISION_HOLD__M32_4_4_TRACE_HOLD`。原文件与发布事实不做不可逆修改；人工作出准确“这是发布时上传前 MP4”的确认及创作方向确认后，才允许独立的源身份归档/Review 迁移。
