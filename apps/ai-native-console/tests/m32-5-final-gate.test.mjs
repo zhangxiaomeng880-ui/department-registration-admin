@@ -184,3 +184,13 @@ test('author-confirmed published captioned visuals do not assert uploaded file b
  assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
  assert.ok(gate.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
 });
+
+test('real internally edited A2 preview with identical audio remains HOLD without Human approval or external results',()=>{
+ const m=clone();
+ assert.equal(m.criterion19['C19-A2'].privatePreview?.originalAudioBitstreamMatched,true);
+ assert.equal(m.criterion19['C19-A2'].privatePreview?.humanCreativeDecision,null);
+ const r=evaluateM325Gate(m);
+ assert.equal(r.decision,'HOLD');
+ assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+ assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
+});
