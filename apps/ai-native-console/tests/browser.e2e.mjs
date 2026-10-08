@@ -80,7 +80,7 @@ try{
  assert.equal(await page.getByRole('button',{name:'下载文件'}).count(),0);
  await page.goBack();await page.waitForURL('**/projects/'+pId+'/assets');
  await go('/projects/'+pId+'/data');await page.getByText('任务总数').waitFor();
- await go('/projects/'+pId+'/stages');await page.getByText('正式资产与版本').waitFor();
+ await go('/projects/'+pId+'/stages');await page.locator('#stageTable').getByText('正式资产与版本',{exact:true}).waitFor();
  await go('/projects/'+pId+'/audit');await page.getByText('READ_ONLY_AUDIT_TEST').waitFor();
  await go('/capabilities');await page.getByText('测试资源能力').waitFor();
  assert.equal(await page.locator('#projectScreen').isVisible(),false);
