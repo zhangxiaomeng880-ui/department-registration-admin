@@ -127,3 +127,16 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - 后续默认执行平台发布主线；C19 外部视频发布不再自动推进、不会用于替代平台发布证据。Production 未经明确授权不得变更。
 
 检查点：`M32_5_PLATFORM_RELEASE_SPLIT_PASS_TESTED__PLATFORM_15_HOLD__C19_BUSINESS_3_HOLD__M32_4_4_EVIDENCE_TRACE_HOLD`。
+
+
+## 平台发布与 C19 业务验收解耦（2026-10-08）
+
+本次纠正 M32.5 Release Gate 的边界：外部 AIGC 内容发布及 C19-P1/P2/A1/A2 真实业务闭环，是**独立业务验收报告**，不应成为 AI Native 2.0 平台代码上 Production 的强制条件。
+
+- 独立返回 `businessAcceptance` / `businessCriterion19`，不纳入 `blockers`；原 C19 证据及后续有效性均保留，不伪造 PASS。
+- 将 `aigc_publish_performance_review_next_round` 从平台级 mandatory live E2E 七项中移至独立 C19 业务验收；其余平台真实登录、CRUD、授权下载、撤权、发布证据追踪及回滚继续为发布硬门禁。
+- 原始 M32.5 业务/平台混合 18 项拆分为 **平台 15 项 HOLD + 独立 C19 3 项 HOLD**。平台 15 项包括 M32.1–M32.4.4 真实 CI 上游证据、真实授权 E2E、回滚、Release Trace、Production 人工批准、外部签名验证等；任何一项未实际满足都不得晋级。
+- 代码与测试：GitHub Actions [37787868139](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37787868139)，16/16 PASS，正式 Gate 仍 HOLD。
+- 不运行任何小红书发布、不修改视频、不对 Railway Staging 或 Production 部署；PR #14 保持 Draft。
+
+下一平台步骤：只读恢复 M32.1–M32.4.4 独立真实 Run/Artifact/Deployment 并核对 Release Trace，然后在可控 Staging 内补真实授权测试与回滚演练，生产发布须另行明确批准。
