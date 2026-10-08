@@ -1,6 +1,7 @@
 // M32.5 release evidence contract. A green CI contract check is NOT a
 // Production Release Gate PASS; missing independently verified evidence is HOLD.
 import {readFileSync} from 'node:fs';
+import {createHash,verify as verifySignature} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 
 const sha=/^[a-f0-9]{40}$/i;
@@ -32,7 +33,9 @@ const validRollback=e=>e?.environment==='staging'&&sha.test(e.oldCommit||'')&&
  sha.test(e.targetCommit||'')&&e.oldCommit!==e.targetCommit&&
  e?.operator&&e?.reason&&e?.timestamp&&e?.result==='PASS'&&independent(e);
 
-export const evaluateM325Gate=(manifest)=>{
+export const computeManifestDigest=manifest=>createHash('sha256').update(JSON.stringify({...manifest,externalAttestation:null})).digest('hex');
+
+export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
  const blockers=[];
  if(!manifest||manifest.schemaVersion!=='M32.5_RELEASE_GATE_V1')blockers.push(issue('SCHEMA_INVALID','Missing frozen M32.5 schema'));
  if(manifest?.releaseScope!=='STAGING_PREPRODUCTION')blockers.push(issue('SCOPE_INVALID','Must use isolated staging'));
@@ -76,10 +79,18 @@ export const evaluateM325Gate=(manifest)=>{
  // The gate may only be RELEASE_PASS if a trusted external verifier has read
  // every source and attached a matching attestation over this frozen manifest.
  const att=manifest?.externalAttestation;
- if(!att||att.decision!=='APPROVE'||att.source!=='INDEPENDENT_RELEASE_VERIFIER'||
-   !sha.test(att.manifestSha256||'')&& !/^[a-f0-9]{64}$/.test(att.manifestSha256||'') ||
-   att.humanReviewed!==true || !independent(att))
-  blockers.push(issue('EXTERNAL_ATTESTATION_REQUIRED','Independent verifier and human review required; self-reported PASS is insufficient'));
+ let signatureVerified=false;
+ if(att?.source==='INDEPENDENT_RELEASE_VERIFIER'&&att?.decision==='APPROVE'&&
+    att?.humanReviewed===true&&independent(att)&&
+    /^[a-f0-9]{64}$/i.test(att.manifestSha256||'')&&
+    att.manifestSha256===computeManifestDigest(manifest)&&
+    typeof att.signature==='string'&&verifierPublicKey){
+  try{
+   signatureVerified=verifySignature(null,Buffer.from(att.manifestSha256,'hex'),verifierPublicKey,Buffer.from(att.signature,'base64'));
+  }catch{signatureVerified=false;}
+ }
+ if(!signatureVerified)
+  blockers.push(issue('EXTERNAL_ATTESTATION_REQUIRED','Independent signed manifest + human review required; self-reported PASS is insufficient'));
  return {
   gate:'M32.5_WORKBENCH_FINAL_RELEASE',
   decision:blockers.length?'HOLD':'RELEASE_READY_PENDING_PROMOTION',
