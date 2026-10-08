@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createKeyPairSync,sign} from 'node:crypto';
+import {generateKeyPairSync,sign} from 'node:crypto';
 import {evaluateM325Gate,computeManifestDigest} from '../release/m32-5-final-gate.mjs';
 
 const original=JSON.parse(readFileSync(new URL('../release/M32_5_EVIDENCE_V1_CURRENT.json',import.meta.url)));
