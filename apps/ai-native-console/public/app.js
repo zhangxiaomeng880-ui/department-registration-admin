@@ -442,7 +442,9 @@ async function renderRoute(){
 }
 $('workspaceSelect').addEventListener('change',async event=>{
  state.workspaceId=event.target.value;state.selected=null;state.projects=[];
+ ++state.routeVersion; // invalidate in-flight lifecycle/asset/audit reads of old workspace
  if(parseRoute().page!=='projects')history.pushState(null,'','/projects');
+ setScreen('catalogScreen');renderCatalog(); // clear old workspace cards before any new HTTP result
  await loadProjects();
 });
 $('refresh').addEventListener('click',()=>loadProjects());
