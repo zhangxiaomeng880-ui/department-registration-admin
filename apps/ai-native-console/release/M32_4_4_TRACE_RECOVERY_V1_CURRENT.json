@@ -1,0 +1,68 @@
+{
+  "schema": "M32.4.4_TRACE_RECOVERY_V1",
+  "capturedAt": "2026-10-08T12:38:48.717Z",
+  "decision": "HISTORICAL_M31_TRACE_VERIFIED__M32_4_4_REAL_BINDING_HOLD",
+  "project": "AI Native 2.0",
+  "scope": "read-only cross-system evidence recovery",
+  "observed": {
+    "stagingEnvironmentId": "fc068d5a-6664-42df-8bae-c84cbc569601",
+    "stagingProjectId": "8f6bea55-f9a1-4335-849b-d0ba5ad3bbb6",
+    "console": {
+      "branch": "feat/ai-native-console-real-binding-m31",
+      "deployedSha": "9c55c313a21d248247d7ac58d056644ba703d732",
+      "serviceId": "2c4cdb8d-94af-4ab8-943f-13ae9e74f81d",
+      "deploymentId": "48ab1d6c-efac-4a8c-b752-4c80822e60fb",
+      "status": "SUCCESS",
+      "running": "online",
+      "exactShaCi": {
+        "repository": "zhangxiaomeng880-ui/department-registration-admin",
+        "runId": 37731813987,
+        "headSha": "9c55c313a21d248247d7ac58d056644ba703d732",
+        "status": "success"
+      }
+    },
+    "runtime": {
+      "branch": "feat/frontend-sync-project-list-m31",
+      "deployedSha": "7eb6c9d4f244b23f52ed90bc9ef801e776726a57",
+      "serviceId": "fe463e22-49b6-452e-afb1-c30590298d42",
+      "deploymentId": "7d65ddf5-4edb-4694-9707-1493ce75bde8",
+      "status": "SUCCESS",
+      "running": "online",
+      "exactShaCi": {
+        "repository": "zhangxiaomeng880-ui/department-registration-backend",
+        "runId": 37731945400,
+        "headSha": "7eb6c9d4f244b23f52ed90bc9ef801e776726a57",
+        "status": "success"
+      }
+    },
+    "mysql": {
+      "deploymentId": "10204672-ba09-4ca8-b35b-3dcad3db44ac",
+      "status": "SUCCESS"
+    },
+    "anonymousSmoke": {
+      "runId": 37732093238,
+      "result": "success",
+      "runtimeReadyHttp": 200,
+      "consoleFileAccessHttp": 401,
+      "runtimeFileAccessHttp": 401
+    },
+    "productionChanged": false
+  },
+  "m32_4_4": {
+    "sourceCommit": null,
+    "workflowRun": null,
+    "buildId": null,
+    "deploymentId": null,
+    "releaseVersion": null,
+    "operator": null,
+    "rollbackRecord": null,
+    "traceStatus": "HOLD_NOT_FOUND",
+    "reason": "The observed validated release trace belongs to M31.5, not a verified M32.4.4 release"
+  },
+  "limitations": [
+    "No authenticated scoped-user E2E",
+    "No verified M32.4.4 artifact in connected GitHub repositories or Google Drive search",
+    "Runtime and Console deployment metadata verified; no operator identity available",
+    "No production deploy or rollback performed"
+  ]
+}

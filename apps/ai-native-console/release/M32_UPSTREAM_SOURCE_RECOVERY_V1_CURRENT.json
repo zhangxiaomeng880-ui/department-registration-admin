@@ -1,0 +1,86 @@
+{
+  "schema": "M32_UPSTREAM_SOURCE_RECOVERY_V1",
+  "capturedOn": "2026-10-08",
+  "scope": "READ_ONLY_GITHUB_SOURCE_DISCOVERY",
+  "repositories": [
+    {
+      "repo": "zhangxiaomeng880-ui/department-registration-admin",
+      "branchListFetchedPages": [
+        1
+      ],
+      "observedBranchCount": 13,
+      "m32Branches": [
+        "feat/ai-native-m32-5-final-release-gate"
+      ],
+      "result": "NO_INDEPENDENT_M32_1_TO_M32_4_4_NAMED_BRANCH_OBSERVED"
+    },
+    {
+      "repo": "zhangxiaomeng880-ui/department-registration-backend",
+      "branchListFetchedPages": [
+        1,
+        2
+      ],
+      "observedBranchCount": 133,
+      "m32Branches": [],
+      "result": "NO_M32_NAMED_BRANCH_OBSERVED",
+      "pullRequestsExamined": 14,
+      "matchingM32WorkbenchPRTitles": []
+    }
+  ],
+  "stages": {
+    "M32.1": {
+      "status": "UNVERIFIED",
+      "verifiedIndependentCiRun": null,
+      "sourceCommit": null,
+      "artifactRef": null,
+      "stagingDeployment": null,
+      "reason": "Not found by branch-name inventory; alternate-named refs and artifacts are not ruled out"
+    },
+    "M32.2": {
+      "status": "UNVERIFIED",
+      "verifiedIndependentCiRun": null,
+      "sourceCommit": null,
+      "artifactRef": null,
+      "stagingDeployment": null,
+      "reason": "Not found by branch-name inventory; alternate-named refs and artifacts are not ruled out"
+    },
+    "M32.3": {
+      "status": "UNVERIFIED",
+      "verifiedIndependentCiRun": null,
+      "sourceCommit": null,
+      "artifactRef": null,
+      "stagingDeployment": null,
+      "reason": "Not found by branch-name inventory; alternate-named refs and artifacts are not ruled out"
+    },
+    "M32.4": {
+      "status": "UNVERIFIED",
+      "verifiedIndependentCiRun": null,
+      "sourceCommit": null,
+      "artifactRef": null,
+      "stagingDeployment": null,
+      "reason": "Not found by branch-name inventory; alternate-named refs and artifacts are not ruled out"
+    },
+    "M32.4.4": {
+      "status": "UNVERIFIED",
+      "verifiedIndependentCiRun": null,
+      "sourceCommit": null,
+      "artifactRef": null,
+      "stagingDeployment": null,
+      "reason": "Not found by branch-name inventory; alternate-named refs and artifacts are not ruled out"
+    }
+  },
+  "knownPriorEvidence": {
+    "m31ConsoleRunId": 37731813987,
+    "m31RuntimeRunId": 37731945400,
+    "m31AnonymousSmokeRunId": 37732093238,
+    "status": "REUSABLE_HISTORIC_ONLY_NOT_M32"
+  },
+  "platformReleaseDecision": "HOLD",
+  "businessAcceptance": "INDEPENDENT_NOT_PLATFORM_PREREQUISITE",
+  "nextActions": [
+    "Check M32 specification or prior workbench implementation mapping across alternate-named source refs and artifact archives",
+    "Implement missing M32 stages on isolated branch when source implementation truly absent",
+    "Correlate each real GitHub CI head SHA to build artifact, staging deployment and operator receipt",
+    "Do not mark stages PASS from absence of contrary evidence"
+  ]
+}

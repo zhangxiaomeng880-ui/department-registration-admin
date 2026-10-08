@@ -1,0 +1,45 @@
+name: AI Native M32.5 Final Release Evidence
+on:
+  push:
+    branches: [feat/ai-native-m32-5-final-release-gate]
+    paths:
+      - ".github/workflows/ai-native-m32-5-final-gate.yml"
+      - "apps/ai-native-console/release/m32-5-final-gate.mjs"
+      - "apps/ai-native-console/release/M32_5_EVIDENCE_V1_CURRENT.json"
+      - "apps/ai-native-console/tests/m32-5-final-gate.test.mjs"
+      - "apps/ai-native-console/release/M32_5_FINAL_GATE_V1_CURRENT.md"
+  pull_request:
+    paths:
+      - ".github/workflows/ai-native-m32-5-final-gate.yml"
+      - "apps/ai-native-console/release/**"
+      - "apps/ai-native-console/tests/m32-5-final-gate.test.mjs"
+  workflow_dispatch:
+    inputs:
+      require_release_ready:
+        description: "Fail unless M32.5 is independently verified and human-approved"
+        type: boolean
+        default: true
+        required: true
+permissions:
+  contents: read
+jobs:
+  evidence-contract:
+    name: Evidence schema and fail-closed controls (NOT a release approval)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate gate code
+        run: node --check apps/ai-native-console/release/m32-5-final-gate.mjs
+      - name: Test every HOLD condition with isolated synthetic-only records
+        run: node --test apps/ai-native-console/tests/m32-5-final-gate.test.mjs
+      - name: Evaluate frozen CURRENT evidence (HOLD allowed for evidence refresh)
+        run: node apps/ai-native-console/release/m32-5-final-gate.mjs
+      - name: Require formal release evidence for explicit dispatch (fails CLOSED)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.require_release_ready }}
+        env:
+          M32_RELEASE_VERIFIER_PUBLIC_KEY: ${{ vars.M32_RELEASE_VERIFIER_PUBLIC_KEY }}
+        run: node apps/ai-native-console/release/m32-5-final-gate.mjs --require-pass

@@ -1,0 +1,442 @@
+{
+  "schemaVersion": "M32.5_RELEASE_GATE_V1",
+  "capturedAt": "2026-10-08T12:39:16.079Z",
+  "releaseScope": "STAGING_PREPRODUCTION",
+  "provenance": "Railway service environment reads and GitHub checks; M32 upstream records currently not found",
+  "upstream": {
+    "M32.1": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.2": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.3": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.4": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.4.4": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    }
+  },
+  "staging": {
+    "environmentId": "fc068d5a-6664-42df-8bae-c84cbc569601",
+    "projectId": "8f6bea55-f9a1-4335-849b-d0ba5ad3bbb6",
+    "services": {
+      "console": {
+        "name": "ai-native-console-m31",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "48ab1d6c-efac-4a8c-b752-4c80822e60fb",
+        "deployedCommit": "9c55c313a21d248247d7ac58d056644ba703d732",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      },
+      "runtime": {
+        "name": "runtime-staging-rc1",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "7d65ddf5-4edb-4694-9707-1493ce75bde8",
+        "deployedCommit": "7eb6c9d4f244b23f52ed90bc9ef801e776726a57",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      },
+      "mysql": {
+        "name": "mysql-staging",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "10204672-ba09-4ca8-b35b-3dcad3db44ac",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      }
+    },
+    "runtimeReadyHttp": 200,
+    "anonymousFileHttp": 401,
+    "writesEnabled": false,
+    "pendingDeploys": 0,
+    "negativeEvidence": {
+      "source": "STAGING_HTTP_SMOKE",
+      "runId": 37732093238,
+      "scope": "anonymous only",
+      "note": "Not a substitute for authenticated E2E"
+    }
+  },
+  "production": {
+    "environmentId": "e8afc1ed-80e4-42d3-85d9-3e3ec193c5f7",
+    "changedDuringGate": false,
+    "approvalGranted": false,
+    "humanApprovalEvidence": null
+  },
+  "trace": {
+    "release": null,
+    "rollback": null,
+    "recoveredHistoricalM31": {
+      "path": "M32_4_4_TRACE_RECOVERY_V1_CURRENT.json",
+      "scope": "M31.5_REAL_PINNED_TRACE_ONLY",
+      "m32RealBindingClosed": false
+    }
+  },
+  "flows": {
+    "authenticated_personal_login": {
+      "status": "HOLD",
+      "reason": "No live personal scoped principal positive browser E2E"
+    },
+    "project_crud_reload_original_audit": {
+      "status": "HOLD",
+      "reason": "Staging Console writes disabled"
+    },
+    "asset_version_authorized_download_sha256": {
+      "status": "HOLD",
+      "reason": "No owned approved S3 asset and personal scope positive download"
+    },
+    "revoked_access_denied": {
+      "status": "HOLD",
+      "reason": "No live actual identity revocation proof"
+    },
+    "aigc_publish_performance_review_next_round": {
+      "status": "HOLD",
+      "reason": "No real downstream loop attestation"
+    },
+    "release_evidence_trace": {
+      "status": "HOLD",
+      "reason": "M32.4.4 release trace IDs not independently verified"
+    },
+    "rollback_execution_or_verified_safe_rehearsal": {
+      "status": "HOLD",
+      "reason": "No M32 rollback rehearsal receipt"
+    }
+  },
+  "externalAttestation": null,
+  "notes": [
+    "Previous assistant states M32.1-M32.4.4 PASS, but the connected GitHub/Drive search returned no verifiable M32 records. Do not overwrite historical claims, mark UNVERIFIED.",
+    "GitHub latest frontend SHA 78a8fd8d3c480098b071aff1e056df25ccd6291a is not the same as pinned Staging SHA. This alone is not a failed deployment; release candidates must bind exact deployed SHA.",
+    "M31/M31.5 CI PASS is preserved and not rerun merely to establish M32 evidence.",
+    "This is an audit snapshot, not an authorization to deploy or publish.",
+    "2026-10-08: Recovered CURRENT User Library C19 checkpoint; independent GitHub runs 37561607586 and 37712613211 success and Railway historical C19-P2 deployment observed REMOVED after replacement. Reuse P1/P2; no claim of current live Runtime row readback.",
+    "M32.4.4 release trace was NOT found; recovered M31.5 exact SHA-to-GitHub-CI evidence is historical only, never counted as M32.4.4.",
+    "C19-A1 candidate byte hash measured directly on an actual Library MP4 and visual frames compared with the Oct 8 platform creator-analytics cover. Candidate is NOT confirmed byte-for-byte identical to the uploaded Xiaohongshu file. Do not populate exactSourceMp4Sha256, Review Archive or PASS from it.",
+    "C19-A1 source recovery: Materialized two real 12s raw MP4 candidate files and computed independent sha256; one has visible bottom title matching public note. Formal published source hash still null; human/provider proof required.",
+    "Author visually confirmed captioned 12s group in 2026-10-08 conversation; this establishes scene+caption identity only, NOT exact uploaded MP4 hash or approval for Review/Archive.",
+    "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted.",
+    "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied.",
+    "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop.",
+    "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result.",
+    "V0.2 A0 candidate repaired prior overlapping duplicate subtitles: new overlay ends before original fades in; technical QA PASS, editorial gate still HOLD; never published.",
+    "Author confirmed A0 V0.2 visuals. Directly rehashed local file 083600... but previous manifest A0 v0.2 candidate hash is d8e6...; immutable artifact identity conflict requires reconciliation before FINAL/FROZEN. No publication permission.",
+    "Two actual A0 V0.2 exports exist. Author-approved preview is exact SHA 083600.. (3,120,203 bytes), not SHA d8e6.. (15,450,256 bytes); no equivalence or approval transferred. Release candidate awaits separate final archive gate.",
+    "2026-10-08: Two distinct 12s 1080x1920 300-frame A0 V0.2 artifacts verified: 15,450,256-byte earlier candidate d8e6... and 3,120,203-byte QA candidate 083600... . User visual confirmation bound to latter QA candidate; predecessor retained history. No publication/Archive FINAL claims.",
+    "Read-only freeze copy produced and sha256 checked identical to author-approved QA preview; ffmpeg complete decode exit 0; both historical A0 v0.2 variants have same AAC stream but distinct video bytes. This is a local handoff, not permanent archive or publication.",
+    "Candidate A0 V0.2 archived create-only to Xiaohongshu channel adaptation Library and bytes read back SHA-256 matched. Not official published Master, nor permission to publish or A2 real outcome.",
+    "2026-10-08: Existing Library A0 v0.2 approved candidate was independently materialized and byte-for-byte cmp verified (sha256 083600...), so persistent candidate asset is archived without duplicate upload. Remains UNPUBLISHED; production/upload-origin and actual A2 external-result gates HOLD.",
+    "2026-10-08: Reused persistent Library exact-match candidate and inspected official Copyright CURRENT policy: third-party/music clearance must be verified per external release; no authorized new publication. Prepublication Gate HOLD on rights and explicit approval; no reruns or file uploads.",
+    "2026-10-08: Two-repository branch discovery admin 13 branches and runtime 133 branches. No separate M32.1–M32.4.4 named branch; source implementation still unverified, not proven absent. Branch source survey at M32_UPSTREAM_SOURCE_RECOVERY_V1_CURRENT.json.",
+    "M32.1 mapped M31 actual existing route/read baseline; no standalone M32.1 requirements or real release proof recovered, status remains UNVERIFIED. No new business/video action and no deployments.",
+    "M32.1 R01-R10 candidate acceptance matrix authored from M31 code + frozen Master. No located canonical M32.1 spec; user scope not inferred as formally approved. M32.1 remains UNVERIFIED; no deployment/production mutation."
+  ],
+  "criterion19": {
+    "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
+    "source": "User Library CURRENT evidence files + independent GitHub Runs / Railway deployment-history readback",
+    "recordedAt": "2026-10-08T12:39:16.079Z",
+    "C19-P1": {
+      "status": "PASS_REUSED",
+      "type": "REAL_PRODUCT_E2E",
+      "sourceCheckpoint": "AI_NATIVE_2.0_PROJECT_EXECUTION_CHECKPOINT_V1.0_CURRENT.md",
+      "gitHubRun": {
+        "id": 37561607586,
+        "conclusion": "success",
+        "headSha": "ab5ad26c658a1cd1ce9f869b7d95ba54511808fd",
+        "url": "https://github.com/zhangxiaomeng880-ui/department-registration-backend/actions/runs/37561607586"
+      },
+      "liveRuntimeRecordReadback": "NOT_REQUERIED_IN_THIS_GATE",
+      "reexecute": false
+    },
+    "C19-P2": {
+      "status": "PASS_REUSED",
+      "type": "REAL_PRODUCT_RESULT_DECISION_NEXT_ROUND",
+      "humanAttestation": {
+        "decision": "APPROVED",
+        "mode": "HUMAN",
+        "synthetic": false,
+        "realExternalOutcome": true,
+        "sourceCheckpoint": "C19_P2_REAL_PRODUCT_SELF_LOOP_CANDIDATE_2026-10-07_CURRENT.md",
+        "attestationId": "c1900000-0000-4000-8000-000000000025"
+      },
+      "gitHubRun": {
+        "id": 37712613211,
+        "conclusion": "success",
+        "headSha": "25c6c92de126dd409db5f1359b23103d8ca98d12",
+        "url": "https://github.com/zhangxiaomeng880-ui/department-registration-backend/actions/runs/37712613211"
+      },
+      "priorDeployment": {
+        "id": "f06617c5-8444-44de-a6ac-13ca19fb89de",
+        "verifiedRailwayHistory": "REMOVED_AFTER_SUCCESSFUL_REPLACEMENT",
+        "commitSha": "25c6c92de126dd409db5f1359b23103d8ca98d12"
+      },
+      "liveRuntimeRecordReadback": "NOT_REQUERIED_IN_THIS_GATE",
+      "reexecute": false
+    },
+    "C19-A1": {
+      "status": "PUBLISHED_VISUAL_IDENTITY_HUMAN_CONFIRMED__ORIGINAL_UPLOAD_BYTE_PROOF_HOLD",
+      "type": "REAL_AIGC_E2E",
+      "proofFile": "C19_A1_XIAOHONGSHU_PUBLICATION_EVIDENCE_2026-10-08_CURRENT.md",
+      "externalPublication": "CONFIRMED_BY_OWNER",
+      "performance": "REAL_SNAPSHOT_RECORDED",
+      "exactSourceMp4Sha256": null,
+      "humanReviewAttestation": null,
+      "reviewArchive": null,
+      "reexecutePublication": false,
+      "sourceCandidate": {
+        "fileName": "kf01_tonight_v01.mp4",
+        "fileOrigin": "User Library original MP4 bytes (read-only materialization)",
+        "sha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "fileSizeBytes": 4011967,
+        "durationSeconds": 12,
+        "width": 1080,
+        "height": 1920,
+        "videoCodec": "h264",
+        "audioCodec": "aac",
+        "frameCount": 300,
+        "visualCrossCheck": "MATCHES_CREATOR_ANALYTICS_THUMBNAIL_SCENE__NIGHT_SEASIDE",
+        "overlayText": "昨天，我又梦到你了",
+        "confidence": "HIGH_CANDIDATE_NOT_BYTE_IDENTICAL_PUBLICATION_PROOF",
+        "userConfirmedExactPublishedBytes": false,
+        "publicPlatformByteHashVerified": false,
+        "promotionsAllowed": false,
+        "approvedAsPublishedMaster": false,
+        "userConfirmedVisualMatch": true,
+        "humanConfirmedPublishedVisualVersion": true
+      },
+      "fileCandidateReview": {
+        "evidenceFile": "C19_A1_MP4_SOURCE_CANDIDATES_V1_CURRENT.json",
+        "exactCandidateHashesComputed": true,
+        "preferredMatchingCandidateFilename": "kf01_tonight_v01.mp4",
+        "preferredCandidateSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "relatedCandidateFilename": "KF01_jinwanbuganlu_micro_motion_v01.mp4",
+        "relatedCandidateSha256": "7af6e77a715ad712e183ef7486f16c0ffb63278750064aa7fa2fe3b91b6cfd54",
+        "actuallyPublishedSourceHashVerified": false,
+        "rationale": "Burned-in title text + 12s visual/audio match. Candidate hashes are real raw bytes, NOT a proof of uploaded exact bytes.",
+        "humanVisualIdentityVerified": true,
+        "publishedVisualVersionConfirmed": true,
+        "confirmationEvidenceRef": "C19_A1_HUMAN_VISUAL_IDENTITY_CONFIRMATION_V1_CURRENT.md"
+      },
+      "visualIdentityConfirmation": {
+        "status": "PASS",
+        "mode": "HUMAN",
+        "scope": "CAPTIONED_VIDEO_VISUAL_CONTENT_MATCH_ONLY",
+        "confirmedObject": "kf01_tonight_v01.mp4 captioned visual",
+        "evidenceRef": "C19_A1_HUMAN_VISUAL_IDENTITY_CONFIRMATION_V1_CURRENT.md",
+        "timestamp": "2026-10-08",
+        "literalAnswer": "是的"
+      },
+      "publishedSourceBinding": null,
+      "publishedVisualIdentity": {
+        "status": "PASS_HUMAN_CONFIRMED",
+        "confirmedVisualVariant": "12s KF01 seaside frame with '昨天，我又梦到你了。' baked-in subtitle",
+        "matchingLocalCandidate": "kf01_tonight_v01.mp4",
+        "candidateSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "evidenceRef": "C19_A1_HUMAN_VISUAL_IDENTITY_CONFIRMATION_V1_CURRENT.md",
+        "confirmationScope": "VISUAL_VERSION_ONLY",
+        "confirmedBy": "PROJECT_AUTHOR_IN_THIS_CHAT",
+        "confirmedDate": "2026-10-08",
+        "uploadedFileBytesIdentical": null,
+        "uploadSourceApproval": false
+      },
+      "subtitleOnsetMeasured": {
+        "timestamp": "2026-10-08",
+        "media": "kf01_tonight_v01.mp4",
+        "sampledTimesSeconds": [
+          0.3,
+          1,
+          1.5
+        ],
+        "finding": "at 0.3 absent; at 1.0 fading in; at 1.5 legible",
+        "supersedesAssumption": "subtitle only appears at 2 seconds",
+        "sourceSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890"
+      },
+      "internalReviewCandidate": {
+        "id": "C19_A1_A0_FIRST_FRAME_CAPTION_PREVIEW_ONLY",
+        "status": "INTERNAL_PREVIEW_QA_PASS__AUTHOR_CREATIVE_DECISION_PENDING",
+        "changeScope": "FIRST_FRAME_SUBTITLE_TIMING_ONLY",
+        "sourceLibraryFileId": "file_0000000090a882308460974cdd972ffc",
+        "sourceSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890",
+        "previewSha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
+        "durationSeconds": 12,
+        "audioBitstreamMatchedOriginal": true,
+        "humanCreativeReviewApproval": false,
+        "externallyPublished": false,
+        "registeredAsFormalMaster": false,
+        "provenanceFile": "C19_A1_A0_OPENING_PREVIEW_V1_REVIEW_ONLY.md",
+        "subtitleFirstVisibleSourceEstimate": "about 0.75s fade-in; about 1s readable"
+      }
+    },
+    "C19-A2": {
+      "status": "A0_V0_2_LIBRARY_QA_PASS__PREPUBLISH_RIGHTS_AND_HUMAN_GATE_HOLD",
+      "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
+      "performanceEvidence": "CAPTURED_C19_A1",
+      "humanDecision": {
+        "mode": "HUMAN",
+        "decision": "SELECT_A0_FOR_INTERNAL_CREATIVE_DIRECTION",
+        "option": "A0_FIRST_FRAME_CAPTION",
+        "source": "User explicitly selected option 1 after preview options",
+        "scope": "INTERNAL_CREATIVE_CHOICE_ONLY",
+        "recordedDate": "2026-10-08",
+        "publicationApproved": false,
+        "reviewAttestationApproved": false
+      },
+      "executedNextRound": null,
+      "attestation": null,
+      "privatePreview": {
+        "status": "INTERNAL_CANDIDATE_TECH_QA_PASS_HUMAN_REVIEW_PENDING",
+        "evidentiaryScope": "LOCAL_FILE_ONLY_NOT_DEPLOYED_NOT_PUBLISHED",
+        "filename": "C19_A1_KF01_OPENING_REVEAL_V0.1_CANDIDATE.mp4",
+        "sha256": "ad2801f33838750dd7512edae400df285ed532d436a6b5c861b646b691ebd801",
+        "sizeBytes": 2356440,
+        "durationSeconds": 12,
+        "resolution": "1080x1920",
+        "frames": 300,
+        "fps": 25,
+        "audioBitstreamSha256": "17dc02a1d10455e8b43dc49486e87a921341fc12bee9b3efbc2264c84f6704a9",
+        "originalAudioBitstreamMatched": true,
+        "changedOnly": "opening 1.8 seconds framing; 1.16x slight digital zoom settling to original",
+        "downstreamAfter2sSSIM": 0.990185,
+        "evidenceRef": "C19_A2_LOCAL_OPENING_REVEAL_V0.1_READY.md",
+        "humanCreativeDecision": null,
+        "externalPublication": null,
+        "realNextRoundMetrics": null
+      },
+      "a0VisualQA": {
+        "status": "HUMAN_VISUAL_PASS__LIBRARY_RELEASE_CANDIDATE_ARCHIVED__PUBLICATION_HOLD",
+        "selectedByHuman": true,
+        "originalV01Sha256": "57c608d29912effe2a761dab8c22ee092c959c4502017f67369a2c32b3fd9ab4",
+        "currentCandidateFilename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+        "currentCandidateSha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+        "durationSeconds": 12,
+        "frameCount": 300,
+        "audioStreamUnchanged": true,
+        "qaEvidenceRef": "C19_A1_A0_FINAL_VISUAL_QA_V1_CURRENT.md",
+        "humanFinalCreativeAcceptance": {
+          "decision": "APPROVED",
+          "mode": "HUMAN",
+          "scope": "A0_V0_2_VISUAL_AND_SUBTITLE_CONTINUITY_ONLY",
+          "source": "user explicitly replied 确认 twice following v0.2 QA",
+          "date": "2026-10-08",
+          "publicationApproved": false
+        },
+        "externalReleaseApproved": false,
+        "fileFingerprintReconciliation": {
+          "result": "RESOLVED_TWO_DISTINCT_ARTIFACTS",
+          "priorManifestArtifact": {
+            "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4",
+            "sizeBytes": 15450256,
+            "sha256": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+            "status": "HISTORY_CANDIDATE_NOT_SELECTED"
+          },
+          "userReviewedArtifact": {
+            "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+            "sizeBytes": 3120203,
+            "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+            "status": "HUMAN_VISUAL_PASS_LOCAL_RELEASE_CANDIDATE"
+          },
+          "evidenceMethod": "read-only sha256sum and ffprobe on actual two different MP4s",
+          "sourceData": "2026-10-08 container recheck"
+        },
+        "localFreezeCopy": {
+          "filename": "C19_A1_A0_V0.2_HUMAN_APPROVED_RELEASE_CANDIDATE.mp4",
+          "location": "local ephemeral work container; not persistent library",
+          "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+          "matchesApprovedPreview": true,
+          "decoderExitCode": 0,
+          "aacStreamHash": "792081cce95b0dd592bf4476bd1ddc4e5be92c6900d3e000a481836282355a02",
+          "label": "HUMAN_VISUAL_APPROVED_LOCAL_CANDIDATE_ONLY",
+          "published": false,
+          "archivedPersistently": false
+        },
+        "libraryArchive": {
+          "status": "PASS_CANDIDATE_ONLY",
+          "path": "/你好那年夏天/渠道适配/小红书/C19_A1_A0_发布候选/C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+          "libraryFileId": "libfile_d169a90840888191b21d2fb410d94f55",
+          "backingFileId": "file_00000000e12c81f8beb0cc75b36aa166",
+          "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+          "sizeBytes": 3120203,
+          "readbackShaVerified": true,
+          "designation": "APPROVED_CREATIVE_CANDIDATE_ONLY",
+          "externalPublished": false
+        },
+        "persistentLibraryArchive": {
+          "status": "PASS_BYTE_EXACT_MATCH",
+          "libraryPath": "/你好那年夏天/渠道适配/小红书/C19_A1_A0_发布候选/C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+          "fileId": "file_00000000e12c81f8beb0cc75b36aa166",
+          "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+          "sizeBytes": 3120203,
+          "independentReadback": true,
+          "byteForByteComparedToAuthorReviewedCandidate": true,
+          "scope": "UNPUBLISHED_CANDIDATE_ASSET_ONLY"
+        },
+        "prePublicationGate": {
+          "status": "HOLD_RIGHTS_AND_EXPLICIT_PUBLICATION_APPROVAL",
+          "candidateIntegrity": "PASS_PERSISTENT_LIBRARY_SHA_MATCH",
+          "visualHumanApproval": "PASS_FOR_A0_V0_2_ONLY",
+          "videoSpecs": "PASS_12S_1080x1920",
+          "platform": "XIAOHONGSHU",
+          "targetPostTitle": "昨天，我又梦到你了",
+          "thirdPartyRights": "PENDING_RIGHTS_CLEARANCE",
+          "musicRights": "NOT_INDEPENDENTLY_VERIFIED_FOR_REPUBLICATION",
+          "publicationConsent": false,
+          "externalPostId": null,
+          "externalMetrics": null,
+          "sourcePolicy": "你好那年夏天_IP版权元数据与锁定规则_V1.0_CURRENT_20261007.md",
+          "noAutoPublish": true
+        }
+      },
+      "humanApprovedExactFile": {
+        "status": "HUMAN_VISUAL_QA_PASS",
+        "filename": "C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_QA_CANDIDATE.mp4",
+        "sha256": "08360036745d1a6cb50e0b1c4591c77b72548a87f4e506c4ddc42c4da2936c36",
+        "sizeBytes": 3120203,
+        "evidenceRef": "C19_A1_A0_V02_AUTHOR_VISUAL_ACCEPTANCE_CURRENT.md",
+        "approvalScope": "VISUAL_ONLY",
+        "otherSameLabelExport": "d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726",
+        "otherExportNotApproved": true,
+        "publicationApproved": false
+      }
+    }
+  },
+  "upstreamSourceRecovery": {
+    "status": "NAMED_REF_INVENTORY_COMPLETE__UPSTREAM_EVIDENCE_UNVERIFIED",
+    "evidenceFile": "M32_UPSTREAM_SOURCE_RECOVERY_V1_CURRENT.json",
+    "adminNamedM32Branches": [
+      "feat/ai-native-m32-5-final-release-gate"
+    ],
+    "runtimeNamedM32Branches": [],
+    "scope": "GitHub branch inventory and backend PR-title inventory; no inference that implementation cannot exist under another ref",
+    "productionMutation": false
+  },
+  "m32_1ImplementationMapping": {
+    "status": "BASELINE_M31_CODE_MAPPED__M32_1_FORMAL_REQUIREMENTS_MISSING",
+    "evidenceFile": "M32_1_IMPLEMENTATION_MAPPING_V1_CURRENT.md",
+    "reusedCode": [
+      "public/app.js parseRoute",
+      "/projects/:id/{overview,tasks,assets,data,stages,audit}",
+      "real runtime read paths"
+    ],
+    "notYetProven": [
+      "M32.1 exact accepted requirements",
+      "M32.1 exact SHA/CI/build/deployment",
+      "authenticated scope E2E"
+    ],
+    "passPromoted": false
+  },
+  "m32_1AcceptanceMatrix": {
+    "status": "DRAFT_CANDIDATE_SCOPE_NOT_APPROVED",
+    "path": "M32_1_REQUIREMENTS_ACCEPTANCE_V0.1_CURRENT.md",
+    "requirementsCount": 10,
+    "implementedCodeIsNotStagingPass": true,
+    "upstreamPromotion": false
+  }
+}
