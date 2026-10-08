@@ -71,7 +71,7 @@
           <div id="modules"></div>
         </section>
         <section id="data" class="panel" hidden><h2>项目数据</h2><p class="muted">统计只基于实际接口返回的项目、任务、里程碑数据。</p><div id="dataRows"></div></section>
-        <section id="stages" class="panel" hidden><h2>阶段与 Gate</h2><p class="muted">工作流实例来自 Runtime，未绑定时明确显示未绑定。</p><div id="stageTable"></div><h2>阶段执行记录</h2><div id="transitions"></div></section>
+        <section id="stages" class="panel" hidden><h2>阶段与 Gate</h2><p class="muted">工作流实例来自 Runtime，未绑定时明确显示未绑定。</p><div id="aigcStageCheck" class="stage-check" hidden><h3>AIGC 15 阶段结构验收</h3><p id="aigcStageCheckResult" role="status"></p><p class="muted">仅核对正式工作流实例，不替代单阶段 Gate、生成任务、发布或效果回收的真实验收。</p></div><div id="stageTable"></div><h2>阶段执行记录</h2><div id="transitions"></div></section>
         <section id="audit" class="panel" hidden><h2>项目原始审计</h2><p class="muted">直接读取 Runtime audit_logs。</p><div id="liveAuditRows"></div>
           <h2>工作空间审计索引</h2><p class="muted">M30 索引可能晚于原始记录。</p><div id="auditRows"></div>
         </section>
