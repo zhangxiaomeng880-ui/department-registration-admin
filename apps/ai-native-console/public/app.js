@@ -1,5 +1,28 @@
 const $=id=>document.getElementById(id);
 const state={workspaces:[],projects:[],presets:[],modules:[],type:'',selected:null,workspaceId:null,writesEnabled:false,version:0};
+const AIGC_DOMAINS={
+ 'AIGC_00_INIT':'aigc-foundation','AIGC_01_DISCOVERY':'aigc-foundation','AIGC_02_PLAN':'aigc-foundation',
+ 'AIGC_03_SCRIPT':'aigc-script-domain','AIGC_04_BREAKDOWN':'aigc-breakdown',
+ 'AIGC_05_FORMAT':'aigc-format-strategy','AIGC_06_ASSET':'aigc-asset-system',
+ 'AIGC_07_IMAGE':'aigc-generation-image','AIGC_08_VIDEO_AUDIO':'aigc-video-audio-production',
+ 'AIGC_09_EDIT':'aigc-edit-timeline','AIGC_10_MASTER':'aigc-mastering',
+ 'AIGC_11_DERIVATION':'aigc-distribution-package','AIGC_12_PUBLISH':'aigc-release-publishing',
+ 'AIGC_13_PERFORMANCE':'aigc-performance','AIGC_14_REVIEW':'aigc-review'
+};
+const PRODUCT_DOMAINS=[
+ ['product-domain','需求与产品基线'],['product-delivery-domain','设计与技术交付'],
+ ['product-engineering-domain','研发与预览'],['product-quality-domain','验收与质量'],
+ ['product-outcome','结果与实验'],['product-review','复盘与知识回写']
+];
+function configureDomains(stages){
+ const sel=$('domainSelect'),p=state.projects.find(x=>x.id===state.selected);clear(sel);
+ if(!p)return;
+ const items=p.projectType==='AIGC_CONTENT'
+   ?stages.filter(s=>AIGC_DOMAINS[s.stageKey]).map(s=>[AIGC_DOMAINS[s.stageKey],s.displayName||s.stageKey])
+   :PRODUCT_DOMAINS;
+ for(const [path,label] of items){const op=make('option',label);op.value=path;sel.append(op);}
+ sel.disabled=!sel.options.length;
+}
 const make=(tag,txt='',cls='')=>{const n=document.createElement(tag);if(cls)n.className=cls;n.textContent=txt==null?'—':String(txt);return n;};
 const clear=n=>n.replaceChildren();
 const text=(id,t)=>$(id).textContent=t==null?'—':String(t);
@@ -95,7 +118,7 @@ async function selectProject(id){
  warn(errors.length?'部分真实接口不可用：'+errors.join('；'):'数据已从 Runtime 刷新。审计是服务端索引快照，可能需要单独重建。');
 }
 function renderStages(v){
- const stages=Array.isArray(v.stages)?v.stages:[];text('stageCount',stages.length);
+ const stages=Array.isArray(v.stages)?v.stages:[];text('stageCount',stages.length);configureDomains(stages);
  const root=$('stageTable');clear(root);
  if(!stages.length){root.append(make('p','尚未绑定可读取的正式工作流。','muted'));return;}
  const head=make('div','','gridrow head');['序号','阶段','状态','Gate'].forEach(t=>head.append(make('span',t)));root.append(head);
@@ -144,5 +167,14 @@ $('createForm').onsubmit=async e=>{
   if(!result.id)throw Error('PROJECT_CREATE_RESPONSE_MISSING_ID');
   $('createDialog').close();$('createForm').reset();await loadProjects(result.id);
  }catch(err){text('createError',err.message);}
+};
+$('domainSelect').onchange=async e=>{
+ const id=state.selected,path=e.target.value;if(!id||!path)return;
+ clear($('modules'));warn('正在读取后端阶段领域记录…');
+ try{
+  const v=await req('/api/runtime/projects/'+encodeURIComponent(id)+'/'+path);
+  if(id!==state.selected)return;
+  renderModule(path,v);warn('当前领域已从 Runtime 读取。文档内容仍需通过文件服务单独校验。');
+ }catch(err){warn('领域记录读取失败：'+err.message);}
 };
 bootstrap().catch(e=>warn('启动失败：'+e.message));
