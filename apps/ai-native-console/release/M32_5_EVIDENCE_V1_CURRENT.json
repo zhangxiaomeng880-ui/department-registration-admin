@@ -125,7 +125,8 @@
     "Author visually confirmed captioned 12s group in 2026-10-08 conversation; this establishes scene+caption identity only, NOT exact uploaded MP4 hash or approval for Review/Archive.",
     "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted.",
     "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied.",
-    "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop."
+    "2026-10-08 A0 internal preview created with first-frame caption using approved visual source candidate; original AAC byte stream unchanged; not an author-approved creative review, not actually externally published, and cannot satisfy C19-A2 real self-loop.",
+    "Author chose option 1 (A0 first-frame subtitle) for next internal creative direction; not a publication authorization, formal Human Review attestation, or real AIGC next-round result."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -264,10 +265,19 @@
       }
     },
     "C19-A2": {
-      "status": "PRIVATE_PREVIEW_TECH_QA_PASS__HUMAN_CREATIVE_REVIEW_AND_EXTERNAL_RESULT_HOLD",
+      "status": "A0_CREATIVE_DIRECTION_HUMAN_SELECTED__REAL_EXTERNAL_NEXT_ROUND_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
-      "humanDecision": null,
+      "humanDecision": {
+        "mode": "HUMAN",
+        "decision": "SELECT_A0_FOR_INTERNAL_CREATIVE_DIRECTION",
+        "option": "A0_FIRST_FRAME_CAPTION",
+        "source": "User explicitly selected option 1 after preview options",
+        "scope": "INTERNAL_CREATIVE_CHOICE_ONLY",
+        "recordedDate": "2026-10-08",
+        "publicationApproved": false,
+        "reviewAttestationApproved": false
+      },
       "executedNextRound": null,
       "attestation": null,
       "privatePreview": {
