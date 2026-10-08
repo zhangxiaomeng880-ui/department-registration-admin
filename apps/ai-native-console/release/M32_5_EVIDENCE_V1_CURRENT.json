@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "M32.5_RELEASE_GATE_V1",
+  "capturedAt": "2026-10-08T12:28:16.460Z",
+  "releaseScope": "STAGING_PREPRODUCTION",
+  "provenance": "Railway service environment reads and GitHub checks; M32 upstream records currently not found",
+  "upstream": {
+    "M32.1": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.2": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.3": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.4": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    },
+    "M32.4.4": {
+      "status": "UNVERIFIED",
+      "evidence": null
+    }
+  },
+  "staging": {
+    "environmentId": "fc068d5a-6664-42df-8bae-c84cbc569601",
+    "projectId": "8f6bea55-f9a1-4335-849b-d0ba5ad3bbb6",
+    "services": {
+      "console": {
+        "name": "ai-native-console-m31",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "48ab1d6c-efac-4a8c-b752-4c80822e60fb",
+        "deployedCommit": "9c55c313a21d248247d7ac58d056644ba703d732",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      },
+      "runtime": {
+        "name": "runtime-staging-rc1",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "7d65ddf5-4edb-4694-9707-1493ce75bde8",
+        "deployedCommit": "7eb6c9d4f244b23f52ed90bc9ef801e776726a57",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      },
+      "mysql": {
+        "name": "mysql-staging",
+        "state": "online",
+        "deploymentStatus": "SUCCESS",
+        "deploymentId": "10204672-ba09-4ca8-b35b-3dcad3db44ac",
+        "verification": "EXTERNAL_SOURCE_READBACK",
+        "verifiedAt": "2026-10-08T12:28:16.460Z"
+      }
+    },
+    "runtimeReadyHttp": 200,
+    "anonymousFileHttp": 401,
+    "writesEnabled": false,
+    "pendingDeploys": 0,
+    "negativeEvidence": {
+      "source": "STAGING_HTTP_SMOKE",
+      "runId": 37732093238,
+      "scope": "anonymous only",
+      "note": "Not a substitute for authenticated E2E"
+    }
+  },
+  "production": {
+    "environmentId": "e8afc1ed-80e4-42d3-85d9-3e3ec193c5f7",
+    "changedDuringGate": false,
+    "approvalGranted": false,
+    "humanApprovalEvidence": null
+  },
+  "trace": {
+    "release": null,
+    "rollback": null
+  },
+  "flows": {
+    "authenticated_personal_login": {
+      "status": "HOLD",
+      "reason": "No live personal scoped principal positive browser E2E"
+    },
+    "project_crud_reload_original_audit": {
+      "status": "HOLD",
+      "reason": "Staging Console writes disabled"
+    },
+    "asset_version_authorized_download_sha256": {
+      "status": "HOLD",
+      "reason": "No owned approved S3 asset and personal scope positive download"
+    },
+    "revoked_access_denied": {
+      "status": "HOLD",
+      "reason": "No live actual identity revocation proof"
+    },
+    "aigc_publish_performance_review_next_round": {
+      "status": "HOLD",
+      "reason": "No real downstream loop attestation"
+    },
+    "release_evidence_trace": {
+      "status": "HOLD",
+      "reason": "M32.4.4 release trace IDs not independently verified"
+    },
+    "rollback_execution_or_verified_safe_rehearsal": {
+      "status": "HOLD",
+      "reason": "No M32 rollback rehearsal receipt"
+    }
+  },
+  "externalAttestation": null,
+  "notes": [
+    "Previous assistant states M32.1-M32.4.4 PASS, but the connected GitHub/Drive search returned no verifiable M32 records. Do not overwrite historical claims, mark UNVERIFIED.",
+    "GitHub latest frontend SHA 78a8fd8d3c480098b071aff1e056df25ccd6291a is not the same as pinned Staging SHA. This alone is not a failed deployment; release candidates must bind exact deployed SHA.",
+    "M31/M31.5 CI PASS is preserved and not rerun merely to establish M32 evidence.",
+    "This is an audit snapshot, not an authorization to deploy or publish."
+  ]
+}
