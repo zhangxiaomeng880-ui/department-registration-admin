@@ -181,7 +181,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       // Addressable project pages: deep links and browser back/forward always
       // load the same authenticated shell, never a fabricated project snapshot.
-      if(req.method==='GET'&&(['/projects','/capabilities','/knowledge'].includes(path)||new RegExp('^/projects/[A-Za-z0-9-]{1,64}(/(overview|tasks|assets|data|stages|audit)(/[A-Za-z0-9-]{1,64})?)?
+      if(req.method==='GET'&&(['/projects','/capabilities','/knowledge'].includes(path)||new RegExp('^/projects/[A-Za-z0-9-]{1,64}(/(overview|tasks|assets|data|stages|audit)(/[A-Za-z0-9-]{1,64})?)?'+String.fromCharCode(36)).test(path))){
         const bytes=await readFile(join(root,'public','index.html'));
         res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
       }
