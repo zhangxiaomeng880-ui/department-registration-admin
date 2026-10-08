@@ -31,6 +31,16 @@ const fakeOnly=()=>{ // Synthetic fixture for contract tests; NEVER a real relea
   operator:'synthetic-fixture',reason:'fixture',timestamp:'2026-10-08T12:00:00Z',result:'PASS',
   verification:'EXTERNAL_SOURCE_READBACK',verifiedAt:'2026-10-08T12:00:00Z'
  };
+ // The following is an isolated synthetic fixture, never an actual C19 receipt.
+ m.criterion19['C19-A1']={
+  status:'PASS_CLOSED',exactSourceMp4Sha256:'f'.repeat(64),
+  humanReviewAttestation:{mode:'HUMAN',decision:'APPROVED',synthetic:false},
+  reviewArchive:{id:'SYNTHETIC_TEST_RECEIPT'}
+ };
+ m.criterion19['C19-A2']={
+  status:'PASS_CLOSED',executedNextRound:{id:'SYNTHETIC_TEST_NEXT_ROUND'},
+  attestation:{mode:'HUMAN',decision:'APPROVED',synthetic:false,realExternalOutcome:true}
+ };
  m.production.approvalGranted=true;
  m.production.humanApprovalEvidence='SYNTHETIC_ONLY';
  for(const name of Object.keys(m.flows)){
@@ -122,4 +132,23 @@ test('reused M31 isolated UI test cannot prove M32 real file authorization',()=>
  };
  const r=evaluateM325Gate(m);
  assert.ok(r.blockers.some(x=>x.code==='LIVE_E2E_NOT_PROVEN'&&x.detail.includes('asset_version')));
+});
+
+test('recovered C19 Product evidence stays accepted without rerun; actual AIGC closure still blocked',()=>{
+ const r=evaluateM325Gate(original);
+ const codes=r.blockers.map(x=>x.code);
+ assert.ok(!codes.includes('C19_PRODUCT_E2E_EVIDENCE_UNVERIFIED'));
+ assert.ok(!codes.includes('C19_PRODUCT_SELF_LOOP_EVIDENCE_UNVERIFIED'));
+ assert.ok(codes.includes('C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(codes.includes('C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+});
+test('real AIGC evidence is not equivalent to publication alone',()=>{
+ const m=fakeOnly();
+ m.criterion19['C19-A1']={
+  status:'PASS_CLOSED',exactSourceMp4Sha256:null,
+  humanReviewAttestation:{mode:'HUMAN',decision:'APPROVED',synthetic:false},
+  reviewArchive:{id:'fixture'}
+ };
+ assert.equal(evaluateM325Gate(m).decision,'HOLD');
+ assert.ok(evaluateM325Gate(m).blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
