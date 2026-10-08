@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 const root=dirname(fileURLToPath(import.meta.url));
 const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8'};
 const ASSETS={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/style.css':'style.css'};
-const sessions=new Map(), failed=new Map();
+
 const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
   'x-frame-options':'DENY','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
@@ -35,6 +35,7 @@ const allowed=(method,path)=>{
   return method==='POST'&&path==='/api/runtime/projects';
 };
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
+  const sessions=new Map(),failed=new Map();
   if(!env.RUNTIME_API_BASE_URL||(env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
