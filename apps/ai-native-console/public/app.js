@@ -200,6 +200,23 @@ function renderTasks(g,id){
   row.append(make('small','任务 ID · '+task.id,'mono'));
  }
 }
+const AIGC_STAGE_ORDER=Object.keys(AIGC_DOMAINS);
+function verifyAigcStageStructure(project,lifecycle){
+ if(!project.workflowTemplateId)return '未通过：项目尚未绑定正式工作流模板。';
+ if(!Array.isArray(lifecycle?.stages))return '未通过：真实工作流阶段未返回。';
+ const stages=lifecycle.stages;
+ if(stages.length!==AIGC_STAGE_ORDER.length)return '未通过：当前真实阶段 '+stages.length+'/15；不能把阶段数量当作已验收。';
+ const ordered=[...stages].sort((a,b)=>Number(a.sequenceNo)-Number(b.sequenceNo));
+ const valid=ordered.every((stage,i)=>stage.stageKey===AIGC_STAGE_ORDER[i]&&Number(stage.sequenceNo)===i+1);
+ if(!valid)return '未通过：15 阶段的 Key、顺序或序号与正式 V2.4 工作流不一致。';
+ if(project.currentStageKey&&!AIGC_STAGE_ORDER.includes(project.currentStageKey))return '未通过：项目当前阶段不在正式 15 阶段序列中。';
+ return '结构通过：真实工作流 15/15，阶段 Key 和顺序一致；这不代表全部 Gate 已执行或作品已发布。';
+}
+function renderAigcStageCheck(project,lifecycle){
+ const box=$('aigcStageCheck');
+ box.hidden=project.projectType!=='AIGC_CONTENT';
+ if(!box.hidden)text('aigcStageCheckResult',verifyAigcStageStructure(project,lifecycle));
+}
 function renderStages(v){
  const root=$('stageTable');clear(root);
  const stages=Array.isArray(v?.stages)?v.stages:[];
@@ -287,6 +304,7 @@ async function loadProjectData(route,project,serial){
   if(route.tab==='data'){renderData(gov,lifecycle);return;}
   if(route.tab==='stages'){
    renderStages(lifecycle);
+   renderAigcStageCheck(project,lifecycle);
    const changes=await req(path+'/stage-transitions?limit=50');
    if(serial===state.routeVersion)renderTransitions(changes);
    return;
