@@ -59,3 +59,16 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 - 查找 Library 中的 MP4 可见若干视觉制作候选与历史视频，但**不能仅凭相似文件名/时长将任何一个与已发布视频字节等同**；不搬动、不更名、不绑定、不虚构来源 SHA。
 
 **第二轮断点**：`M32_5_C19_P1_P2_REUSED__A1_A2_REAL_HOLD__M32_4_4_TRACE_HOLD`。下一步只收集已存在的原始 Master / 对应发布过程身份证据以及原 M32.4.4 Trace 的确切路径。需要创作取舍、发布、主文件归档签名、生产操作时走 Human Gate。
+
+
+## 2026-10-08｜A1 已发布视频候选原始文件回收与 Human Review 准备
+
+- 从用户 ChatGPT Library 原始文件字节（未作任何改写）恢复两份 12s 带音轨的 KF01 海边视频；本地通过 `ffprobe` 核对时长/码流/分辨率，并对完整原始 MP4 计算 SHA-256。
+- `kf01_tonight_v01.mp4`：12.000s、1080×1920、H264+AAC，底部直接可见字幕“昨天，我又梦到你了。”；真实源候选哈希 `d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890`。
+- `KF01_jinwanbuganlu_micro_motion_v01.mp4`：12.005s、720×1280、H264+AAC、抽样帧无字幕；真实源候选哈希 `7af6e77a715ad712e183ef7486f16c0ffb63278750064aa7fa2fe3b91b6cfd54`。
+- 另外 3 份按画面/时长排除；候选比对档案：`C19_A1_MP4_SOURCE_CANDIDATES_V1_CURRENT.json`。作品的公开发文标题是“昨天，我又梦到你了”，**不能直接等价为作者实际上传了哪一个 MP4**；平台短链无法在当前浏览环境读取真实上传源文件字节。
+- 新增 `C19_A1_A2_HUMAN_REVIEW_AND_NEXT_ROUND_V1_READY.md`：基于真实数据（2s 退出 42.4%、5s 完成 25%、平均 3.7s、完播 11.7%），建议先在 0–2s 字幕情绪钩子做单变量实验，**只是建议稿，作者尚未 APPROVED，不发布，不修改剧本事实**。
+- Gate 引擎新增安全要求：真实候选文件的哈希 **不是** 已上传版本的 `publishedSourceBinding`；需要作者正式来源认定后才能继续 Review/Archive 资格判定。相关隔离测试 Run [37779682708](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37779682708) **11/11 PASS**。正式 Release Gate **HOLD（18 阻塞项）**。
+- **未修改正式影视素材、没有上传 S3、没有实际发布下一轮、未修改 Railway Staging / Production**。仅完成了真实证据文件候选恢复、评审准备及受控门禁增强。
+
+本轮检查点：`M32_5_C19_P1_P2_REUSED__A1_REAL_12S_SOURCE_CANDIDATES_HASHED__PUBLISHED_SOURCE_HUMAN_BINDING_HOLD__A2_DECISION_HOLD__M32_4_4_TRACE_HOLD`。
