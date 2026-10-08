@@ -1,6 +1,6 @@
 {
   "schemaVersion": "M32.5_RELEASE_GATE_V1",
-  "capturedAt": "2026-10-08T12:28:16.460Z",
+  "capturedAt": "2026-10-08T12:39:16.079Z",
   "releaseScope": "STAGING_PREPRODUCTION",
   "provenance": "Railway service environment reads and GitHub checks; M32 upstream records currently not found",
   "upstream": {
@@ -75,7 +75,12 @@
   },
   "trace": {
     "release": null,
-    "rollback": null
+    "rollback": null,
+    "recoveredHistoricalM31": {
+      "path": "M32_4_4_TRACE_RECOVERY_V1_CURRENT.json",
+      "scope": "M31.5_REAL_PINNED_TRACE_ONLY",
+      "m32RealBindingClosed": false
+    }
   },
   "flows": {
     "authenticated_personal_login": {
@@ -112,6 +117,70 @@
     "Previous assistant states M32.1-M32.4.4 PASS, but the connected GitHub/Drive search returned no verifiable M32 records. Do not overwrite historical claims, mark UNVERIFIED.",
     "GitHub latest frontend SHA 78a8fd8d3c480098b071aff1e056df25ccd6291a is not the same as pinned Staging SHA. This alone is not a failed deployment; release candidates must bind exact deployed SHA.",
     "M31/M31.5 CI PASS is preserved and not rerun merely to establish M32 evidence.",
-    "This is an audit snapshot, not an authorization to deploy or publish."
-  ]
+    "This is an audit snapshot, not an authorization to deploy or publish.",
+    "2026-10-08: Recovered CURRENT User Library C19 checkpoint; independent GitHub runs 37561607586 and 37712613211 success and Railway historical C19-P2 deployment observed REMOVED after replacement. Reuse P1/P2; no claim of current live Runtime row readback.",
+    "M32.4.4 release trace was NOT found; recovered M31.5 exact SHA-to-GitHub-CI evidence is historical only, never counted as M32.4.4."
+  ],
+  "criterion19": {
+    "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
+    "source": "User Library CURRENT evidence files + independent GitHub Runs / Railway deployment-history readback",
+    "recordedAt": "2026-10-08T12:39:16.079Z",
+    "C19-P1": {
+      "status": "PASS_REUSED",
+      "type": "REAL_PRODUCT_E2E",
+      "sourceCheckpoint": "AI_NATIVE_2.0_PROJECT_EXECUTION_CHECKPOINT_V1.0_CURRENT.md",
+      "gitHubRun": {
+        "id": 37561607586,
+        "conclusion": "success",
+        "headSha": "ab5ad26c658a1cd1ce9f869b7d95ba54511808fd",
+        "url": "https://github.com/zhangxiaomeng880-ui/department-registration-backend/actions/runs/37561607586"
+      },
+      "liveRuntimeRecordReadback": "NOT_REQUERIED_IN_THIS_GATE",
+      "reexecute": false
+    },
+    "C19-P2": {
+      "status": "PASS_REUSED",
+      "type": "REAL_PRODUCT_RESULT_DECISION_NEXT_ROUND",
+      "humanAttestation": {
+        "decision": "APPROVED",
+        "mode": "HUMAN",
+        "synthetic": false,
+        "realExternalOutcome": true,
+        "sourceCheckpoint": "C19_P2_REAL_PRODUCT_SELF_LOOP_CANDIDATE_2026-10-07_CURRENT.md",
+        "attestationId": "c1900000-0000-4000-8000-000000000025"
+      },
+      "gitHubRun": {
+        "id": 37712613211,
+        "conclusion": "success",
+        "headSha": "25c6c92de126dd409db5f1359b23103d8ca98d12",
+        "url": "https://github.com/zhangxiaomeng880-ui/department-registration-backend/actions/runs/37712613211"
+      },
+      "priorDeployment": {
+        "id": "f06617c5-8444-44de-a6ac-13ca19fb89de",
+        "verifiedRailwayHistory": "REMOVED_AFTER_SUCCESSFUL_REPLACEMENT",
+        "commitSha": "25c6c92de126dd409db5f1359b23103d8ca98d12"
+      },
+      "liveRuntimeRecordReadback": "NOT_REQUERIED_IN_THIS_GATE",
+      "reexecute": false
+    },
+    "C19-A1": {
+      "status": "PARTIAL_PUBLISHED_AND_PERFORMANCE__HUMAN_REVIEW_HOLD",
+      "type": "REAL_AIGC_E2E",
+      "proofFile": "C19_A1_XIAOHONGSHU_PUBLICATION_EVIDENCE_2026-10-08_CURRENT.md",
+      "externalPublication": "CONFIRMED_BY_OWNER",
+      "performance": "REAL_SNAPSHOT_RECORDED",
+      "exactSourceMp4Sha256": null,
+      "humanReviewAttestation": null,
+      "reviewArchive": null,
+      "reexecutePublication": false
+    },
+    "C19-A2": {
+      "status": "HOLD",
+      "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
+      "performanceEvidence": "CAPTURED_C19_A1",
+      "humanDecision": null,
+      "executedNextRound": null,
+      "attestation": null
+    }
+  }
 }
