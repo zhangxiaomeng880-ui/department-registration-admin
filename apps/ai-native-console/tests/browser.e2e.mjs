@@ -31,7 +31,7 @@ const fakeRuntime=async(url,opt)=>{
  if(path==='/api/runtime/project-types'||path==='/api/runtime/domain-presets'||path==='/api/runtime/aigc-modules')return reply({data:[]});
  if(path==='/api/runtime/capabilities')return reply({data:[{id:'tool1',name:'测试资源能力',capabilityType:'TOOL',status:'ACTIVE'}]});
  if(path==='/api/runtime/projects')return reply({data:{workspaceId:wsId,total:1,items:[{id:pId,name:'真实 API 形态样例（仅测试）',projectKey:'BROWSER_TEST_1',projectType:'AIGC_CONTENT',status:'ACTIVE',currentStageKey:'AIGC_06_ASSET',currentWorkflowVersion:'test-only',workflowTemplateId:'fixture-template'}]}});
- if(path.endsWith('/lifecycle'))return reply({data:{stages,milestones:[]}});
+ if(path.endsWith('/lifecycle'))return reply({data:{project:{workflowTemplateId:'fixture-template'},template:{id:'fixture-template',templateKey:'STANDARD:AIGC_CONTENT_STANDARD',version:'2.4'},stages,milestones:[]}});
  if(path.endsWith('/governance'))return reply({data:{workItems:[{id:tId,itemKey:'TASK-01',title:'测试资产检查',itemType:'QA',status:'ACTIVE',priority:'P1'}],milestones:[{id:'ms-1',displayName:'第一里程碑',managementStatus:'ACTIVE',progressPercent:50}],risks:[]}});
  if(path.endsWith('/stage-transitions'))return reply({data:[]});
  if(path.endsWith('/audit-events'))return reply({data:{source:'AUDIT_LOGS_PRIMARY',items:[{id:'123',eventType:'READ_ONLY_AUDIT_TEST',actorKey:'browser-test'}]}});
