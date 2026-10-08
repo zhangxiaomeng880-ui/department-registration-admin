@@ -31,3 +31,14 @@
 - M32.5 Release：HOLD
 
 下一操作：**只修复上述重影，并重新抽样 0.1 / 0.5 / 0.8 / 1.0 / 1.3 / 2.5s**。若视觉 QA PASS，交作者评审；不得自动对外发布。
+
+
+## V0.2 最小精修结果（新增候选，不覆盖 V0.1）
+
+- 原片真实字幕 0.75–1.0 秒已自然淡入；将新增首帧字幕限制在 `0–0.68s`，`0.44–0.68s` 淡出；此后仅保留原片字幕，不再与其叠印。
+- 非破坏性输出：`C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4`，临时工作路径 `/mnt/data/C19_A1_A0_FIRST_FRAME_CAPTION_V0.2_CANDIDATE.mp4`。
+- 实际编码：12s、1080×1920、300 帧、25fps；完整文件大小 `15,450,256` 字节，SHA-256 `d8e6c4d20d4c26391152879b0c365490f2fb75086ad81f81857a0d1a22270726`。
+- 原片与 V0.2 AAC 编码流 SHA-256 均为 `17dc02a1d10455e8b43dc49486e87a921341fc12bee9b3efbc2264c84f6704a9`，音乐未更改。
+- 样张 `A0_V02_QA_CONTACT.png` 对比 0.24 / 0.52 / 0.8 / 1.2 秒：先前 V0.1 的同字叠加重影已消除；但 0.68s 后到原片字幕清晰显示前仍有淡出与淡入接力效果，且字体尺寸/摆位视觉不完全统一，**故按发布级精度继续保留 VISUAL FINAL HOLD，交作者观看决定是否进一步优化**。
+- V0.2 为新的私人候选，不写回源文件、不上传到小红书、不修改唯一 CURRENT Master。
+- Gate：TECH PASS / DOUBLE-OVERLAY FIX PASS / EDITORIAL REVIEW PENDING / PRODUCTION RELEASE HOLD。
