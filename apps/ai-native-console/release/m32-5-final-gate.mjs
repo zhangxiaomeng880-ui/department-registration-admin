@@ -45,6 +45,30 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
   if(entry?.status!=='PASS'||!validRun(entry?.evidence)||!independent(entry?.evidence))
    blockers.push(issue('UPSTREAM_EVIDENCE_MISSING',stage+' requires independently read-back PASS evidence'));
  }
+
+ // Criterion 19 is a separate real-world closure gate. Never rerun accepted
+ // Product facts simply because the AIGC external evidence is unfinished.
+ const c19=manifest?.criterion19||{};
+ const p1=c19['C19-P1']||{},p2=c19['C19-P2']||{};
+ const sourceRun=entry=>entry?.gitHubRun?.conclusion==='success'&&
+    /^[1-9]\d{6,14}$/.test(String(entry.gitHubRun.id||''))&&
+    sha.test(entry.gitHubRun.headSha||'')&&
+    entry.gitHubRun.url==='https://github.com/zhangxiaomeng880-ui/department-registration-backend/actions/runs/'+entry.gitHubRun.id;
+ if(!['PASS_REUSED','PASS_CLOSED'].includes(p1.status)||!sourceRun(p1))
+  blockers.push(issue('C19_PRODUCT_E2E_EVIDENCE_UNVERIFIED','C19-P1 source and exact CI must be recovered'));
+ if(!['PASS_REUSED','PASS_CLOSED'].includes(p2.status)||!sourceRun(p2)||
+    p2.humanAttestation?.decision!=='APPROVED'||p2.humanAttestation?.mode!=='HUMAN'||
+    p2.humanAttestation?.synthetic!==false||p2.humanAttestation?.realExternalOutcome!==true)
+  blockers.push(issue('C19_PRODUCT_SELF_LOOP_EVIDENCE_UNVERIFIED','C19-P2 human non-synthetic real-outcome attestation is required'));
+ const a1=c19['C19-A1']||{},a2=c19['C19-A2']||{};
+ if(a1.status!=='PASS_CLOSED'||!/^[a-f0-9]{64}$/i.test(a1.exactSourceMp4Sha256||'')||
+    a1.humanReviewAttestation?.mode!=='HUMAN'||a1.humanReviewAttestation?.synthetic!==false||
+    a1.humanReviewAttestation?.decision!=='APPROVED'||!a1.reviewArchive)
+  blockers.push(issue('C19_AIGC_REAL_E2E_HOLD','Actual published master SHA, approved Human Review and Archive receipt are required'));
+ if(a2.status!=='PASS_CLOSED'||!a2.executedNextRound||
+    a2.attestation?.mode!=='HUMAN'||a2.attestation?.synthetic!==false||
+    a2.attestation?.realExternalOutcome!==true||a2.attestation?.decision!=='APPROVED')
+  blockers.push(issue('C19_AIGC_REAL_NEXT_ROUND_HOLD','Real results → Human decision → executed next round with non-synthetic attestation are required'));
  const services=manifest?.staging?.services||{};
  for(const component of ['runtime','console','mysql']){
   const s=services[component];
