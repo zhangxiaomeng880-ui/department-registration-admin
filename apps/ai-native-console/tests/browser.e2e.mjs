@@ -19,6 +19,7 @@ const aId='c1111111-2222-4333-8444-555555555555';
 const vId='d1111111-2222-4333-8444-555555555555';
 const tId='e1111111-2222-4333-8444-555555555555';
 let templateVersion='2.4',lifecycleUnavailable=false;
+let resolveDelayedReview=null;
 let stages=[
   {stageKey:'AIGC_06_ASSET',displayName:'正式资产与版本',sequenceNo:6,status:'ACTIVE',lastGateResultId:null},
   {stageKey:'AIGC_14_REVIEW',displayName:'数据复盘',sequenceNo:14,status:'PENDING',lastGateResultId:null}
@@ -38,6 +39,7 @@ const fakeRuntime=async(url,opt)=>{
  if(path.endsWith('/audit-events'))return reply({data:{source:'AUDIT_LOGS_PRIMARY',items:[{id:'123',eventType:'READ_ONLY_AUDIT_TEST',actorKey:'browser-test'}]}});
  if(path.endsWith('/audit-evidence'))return reply({data:{items:[]}});
  if(path.endsWith('/aigc-foundation'))return reply({data:{projectId:pId}});
+ if(path.endsWith('/aigc-review'))return new Promise(resolve=>{resolveDelayedReview=resolve;});
  if(path.endsWith('/knowledge-bindings'))return reply({data:[{projectId:pId,bindingKey:'SRC1',sourceKey:'TEST_LIBRARY',provider:'LIBRARY',status:'ACTIVE'}]});
  if(path.endsWith('/aigc-asset-system'))return reply({data:{
   assets:[{id:aId,assetKey:'LOOK_MAIN',displayName:'测试用造型母版',assetType:'LOOK',status:'CURRENT'}],
@@ -75,6 +77,20 @@ try{
  await go('/projects/'+pId+'/tasks');
  await go('/projects/'+pId+'/assets');
  await page.locator('#modules').getByText('测试用造型母版').waitFor();
+ // A slower previous domain request must never replace the user's latest
+ // asset tab selection, even when the older response succeeds afterward.
+ await page.locator('#domainSelect').selectOption('aigc-review');
+ await page.locator('#modules').getByText('正在读取服务端资产…').waitFor();
+ await page.locator('#domainSelect').selectOption('aigc-asset-system');
+ await page.locator('#modules').getByText('测试用造型母版').waitFor();
+ assert.ok(resolveDelayedReview,'the previous domain request was sent');
+ const oldResponse=page.waitForResponse(x=>x.url().endsWith('/aigc-review')&&x.status()===200);
+ resolveDelayedReview(reply({data:{stale:'OLD_DOMAIN_SHOULD_NOT_RENDER'}}));
+ await oldResponse;
+ await page.waitForTimeout(100);
+ assert.equal(await page.locator('#modules').getByText('OLD_DOMAIN_SHOULD_NOT_RENDER').count(),0);
+ await page.locator('#modules').getByText('测试用造型母版').waitFor();
+ console.log('M31_ASSET_RACE_PASS stale successful domain response discarded after latest selection');
  await go('/projects/'+pId+'/assets/'+aId);
  await page.locator('#detailTitle').getByText('测试用造型母版').waitFor();
  await page.getByText('已登记源引用，待授权解析').waitFor();
