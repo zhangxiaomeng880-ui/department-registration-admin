@@ -194,3 +194,19 @@ test('real internally edited A2 preview with identical audio remains HOLD withou
  assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
  assert.ok(r.blockers.some(x=>x.code==='C19_AIGC_REAL_E2E_HOLD'));
 });
+
+test('internal A0 preview must not become a real externally executed AIGC next round',()=>{
+ const a1=original.criterion19['C19-A1'];
+ const a2=original.criterion19['C19-A2'];
+ assert.equal(a1.internalReviewCandidate?.externallyPublished,false);
+ assert.equal(a1.internalReviewCandidate?.humanCreativeReviewApproval,false);
+ assert.equal(a1.internalReviewCandidate?.registeredAsFormalMaster,false);
+ assert.equal(a1.exactSourceMp4Sha256,null);
+ assert.equal(a1.humanReviewAttestation,null);
+ assert.equal(a2.executedNextRound,null);
+ assert.equal(a2.attestation,null);
+ const r=evaluateM325Gate(original);
+ assert.equal(r.decision,'HOLD');
+ assert.ok(r.blockers.some(b=>b.code==='C19_AIGC_REAL_E2E_HOLD'));
+ assert.ok(r.blockers.some(b=>b.code==='C19_AIGC_REAL_NEXT_ROUND_HOLD'));
+});
