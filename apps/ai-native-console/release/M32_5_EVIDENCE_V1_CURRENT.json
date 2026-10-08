@@ -123,7 +123,8 @@
     "C19-A1 candidate byte hash measured directly on an actual Library MP4 and visual frames compared with the Oct 8 platform creator-analytics cover. Candidate is NOT confirmed byte-for-byte identical to the uploaded Xiaohongshu file. Do not populate exactSourceMp4Sha256, Review Archive or PASS from it.",
     "C19-A1 source recovery: Materialized two real 12s raw MP4 candidate files and computed independent sha256; one has visible bottom title matching public note. Formal published source hash still null; human/provider proof required.",
     "Author visually confirmed captioned 12s group in 2026-10-08 conversation; this establishes scene+caption identity only, NOT exact uploaded MP4 hash or approval for Review/Archive.",
-    "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted."
+    "2026-10-08: Project author confirmed that the actually published Xiaohongshu video uses the 12s KF01 visual group with bottom caption. Exact upload-file byte provenance remains unverified and formal MP4 source SHA remains null. No Human Review, A2, or Production approval granted.",
+    "Local exploratory A2 candidate generated from real 12s source without publishing; exact audio bitstream matches; 12s H264 clip hash recorded. Visual creative acceptance and author approval are missing; no external C19-A2 fact is satisfied."
   ],
   "criterion19": {
     "status": "PARTIAL_REAL_EVIDENCE_REUSED__FINAL_HOLD",
@@ -232,15 +233,46 @@
         "confirmedDate": "2026-10-08",
         "uploadedFileBytesIdentical": null,
         "uploadSourceApproval": false
+      },
+      "subtitleOnsetMeasured": {
+        "timestamp": "2026-10-08",
+        "media": "kf01_tonight_v01.mp4",
+        "sampledTimesSeconds": [
+          0.3,
+          1,
+          1.5
+        ],
+        "finding": "at 0.3 absent; at 1.0 fading in; at 1.5 legible",
+        "supersedesAssumption": "subtitle only appears at 2 seconds",
+        "sourceSha256": "d1184df7d7cdd6cbd23ebd0d100f29d913fbcb16097d568a2cc8a662fabc3890"
       }
     },
     "C19-A2": {
-      "status": "HOLD",
+      "status": "PRIVATE_PREVIEW_TECH_QA_PASS__HUMAN_CREATIVE_REVIEW_AND_EXTERNAL_RESULT_HOLD",
       "type": "REAL_AIGC_RESULT_DECISION_NEXT_ROUND",
       "performanceEvidence": "CAPTURED_C19_A1",
       "humanDecision": null,
       "executedNextRound": null,
-      "attestation": null
+      "attestation": null,
+      "privatePreview": {
+        "status": "INTERNAL_CANDIDATE_TECH_QA_PASS_HUMAN_REVIEW_PENDING",
+        "evidentiaryScope": "LOCAL_FILE_ONLY_NOT_DEPLOYED_NOT_PUBLISHED",
+        "filename": "C19_A1_KF01_OPENING_REVEAL_V0.1_CANDIDATE.mp4",
+        "sha256": "ad2801f33838750dd7512edae400df285ed532d436a6b5c861b646b691ebd801",
+        "sizeBytes": 2356440,
+        "durationSeconds": 12,
+        "resolution": "1080x1920",
+        "frames": 300,
+        "fps": 25,
+        "audioBitstreamSha256": "17dc02a1d10455e8b43dc49486e87a921341fc12bee9b3efbc2264c84f6704a9",
+        "originalAudioBitstreamMatched": true,
+        "changedOnly": "opening 1.8 seconds framing; 1.16x slight digital zoom settling to original",
+        "downstreamAfter2sSSIM": 0.990185,
+        "evidenceRef": "C19_A2_LOCAL_OPENING_REVEAL_V0.1_READY.md",
+        "humanCreativeDecision": null,
+        "externalPublication": null,
+        "realNextRoundMetrics": null
+      }
     }
   }
 }
