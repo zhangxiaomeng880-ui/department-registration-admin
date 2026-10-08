@@ -45,3 +45,17 @@ M32.1、M32.2、M32.3、M32.4、M32.4.4 在先前工作记录中被描述为 PAS
 下一步按优先级补齐或读取已有的 M32.1–M32.4.4 正式 Run/Commit/Checkpoint；对所有原来 PASS 且上游不变的部分**仅绑定现成证据，不重新开发或重新跑 QA**。之后依次完成受限真实用户读取+撤权、真实授权资产下载、Release Trace、Rollback rehearsal；收口后才进入人工 Production Gate。
 
 禁止操作：Production 发布、正式资产覆盖/删除、为凑测试私自放开写入或编造签名及历史证据。
+
+
+## 2026-10-08｜证据回收增量（第二轮，继承前轮 Gate）
+
+- **C19-P1 CLOSED/PASS 历史证据重新找回**：来自用户正式 Library CURRENT 的项目检查点；GitHub Run `37561607586` 独立调用 API 验证 completed/success、SHA `ab5ad26c658a1cd1ce9f869b7d95ba54511808fd`。标记 `PASS_REUSED`，不重跑 M27 产品真实 E2E。
+- **C19-P2 CLOSED/PASS 历史证据重新找回**：Library CURRENT 保留人工作出的 HUMAN/APPROVED、non-synthetic 和 `realExternalOutcome=true` 结论；GitHub Run `37712613211` independently success、SHA `25c6c92de126dd409db5f1359b23103d8ca98d12`；Railway 历史 deployment `f06617c5-8444-44de-a6ac-13ca19fb89de` 已被后续成功服务版本替换，现显示 `REMOVED` **不等于原部署失败**。该轮没有重新登录 Runtime 查询证明记录当前存在：`PASS_REUSED/HISTORICAL_VERIFIED`，不重复人工作出批准。
+- **C19-A1**：实际小红书视频与平台表现存在真实发布/分析证据，但已发布 Master 源 MP4 SHA-256 尚未找回，Review→Archive 未闭环；旧无剧透 11s 候选视频不得错误绑定为已发布 12s 作品。
+- **C19-A2**：真实表现快照已具备；尚无通过人工作出的决策及“结果→执行下一轮→回写→证明”可核验闭环。
+- **M32.4.4 Release Trace**：没有在已连接 GitHub 两仓库与 Google Drive 中找到对应正式 CURRENT/Run/Deployment。现保存 `M32_4_4_TRACE_RECOVERY_V1_CURRENT.json`，其中仅证实 M31.5 的前后端 pinned SHA 与匹配 GitHub CI Run；**不得将 M31.5 的真实追踪冒充 M32.4.4 PASS**。Operator、M32 版本、Rollback Receipt 留空并维持 HOLD。
+- **Gate 引擎更新**：C19-P1/P2 采用 `PASS_REUSED` 并保留精确 Run 回执；C19-A1/A2 独立设为硬性阻塞：没有发布 Master SHA + HUMAN Review/Archive、以及 HUMAN/realExternalOutcome 下一轮证据，无法晋级 FINAL。
+- 追加 2 项隔离合约测试后，GitHub Actions Run [37778539152](https://github.com/zhangxiaomeng880-ui/department-registration-admin/actions/runs/37778539152) **10/10 PASS**。当前 CURRENT manifest 判定 **M32.5 FINAL RELEASE HOLD，18 条阻塞（包含 2 条明确的 C19 AIGC 人工真实证据）**。CI 通过不代表 18 条阻塞已经解决。
+- 查找 Library 中的 MP4 可见若干视觉制作候选与历史视频，但**不能仅凭相似文件名/时长将任何一个与已发布视频字节等同**；不搬动、不更名、不绑定、不虚构来源 SHA。
+
+**第二轮断点**：`M32_5_C19_P1_P2_REUSED__A1_A2_REAL_HOLD__M32_4_4_TRACE_HOLD`。下一步只收集已存在的原始 Master / 对应发布过程身份证据以及原 M32.4.4 Trace 的确切路径。需要创作取舍、发布、主文件归档签名、生产操作时走 Human Gate。
