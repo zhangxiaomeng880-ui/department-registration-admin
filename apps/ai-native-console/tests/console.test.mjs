@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createConsoleServer } from '../server.mjs';
-const env={CONSOLE_ADMIN_PASSWORD:'test-password',RUNTIME_API_TOKEN:'staging-secret',RUNTIME_API_BASE_URL:'https://runtime.example.test',CONSOLE_ALLOW_WRITES:'true'};
+const env={CONSOLE_ADMIN_PASSWORD:'test-password',RUNTIME_API_TOKEN:'staging-secret',RUNTIME_API_BASE_URL:'https://runtime.example.test',CONSOLE_ALLOW_WRITES:'true',CONSOLE_ALLOW_SHARED_ADMIN_LOGIN:'true'};
+const scoped='rtk_123456789abc_'+ 'X'.repeat(43);
 const start=async(fetchImpl)=>{
  const server=createConsoleServer({env,fetchImpl});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -16,23 +17,81 @@ test('unauthorized browser cannot access Runtime proxy or arbitrary routes',asyn
   const x=await fetch(a.url+'/api/runtime/plans');assert.equal(x.status,401);
  }finally{await a.close();}
 });
-test('login + real GET + create project proxy; Runtime token never exposed in response',async()=>{
+test('per-user scoped credential delegates GET and write to Runtime, never uses admin token',async()=>{
  const observed=[];
- const a=await start(async(u,o)=>{observed.push({u,method:o.method,auth:o.headers.authorization,body:o.body});
+ const a=await start(async(u,o)=>{
+   observed.push({u,method:o.method,auth:o.headers.authorization,body:o.body});
+   if(u.endsWith('/workspaces'))return fakeResponse({data:[{id:'w1'}]});
    if(o.method==='POST')return fakeResponse({data:{id:'project-real-uuid',name:'真实项目'}},201);
-   return fakeResponse({data:{workspaceId:'w1',total:0,items:[]}});});
+   return fakeResponse({data:{workspaceId:'w1',total:0,items:[]}});
+ });
  try{
-  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  const login=await fetch(a.url+'/auth/login',{
+   method:'POST',headers:{origin:a.url,'content-type':'application/json'},
+   body:JSON.stringify({credential:scoped})
+  });
   assert.equal(login.status,200);
+  assert.equal((await login.json()).mode,'scoped');
   const cookie=login.headers.get('set-cookie').split(';')[0];
+  const session=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
+  assert.equal(session.writesEnabled,true);
   const get=await fetch(a.url+'/api/runtime/projects?workspaceId=w1',{headers:{cookie}});
   assert.equal(get.status,200);assert.equal((await get.json()).data.total,0);
-  const create=await fetch(a.url+'/api/runtime/projects',{method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},body:JSON.stringify({workspaceId:'w1',projectKey:'REAL_01',name:'真实项目',projectType:'AIGC_CONTENT'})});
-  assert.equal(create.status,201);assert.equal((await create.json()).data.id,'project-real-uuid');
-  assert.equal(observed.length,2);assert.equal(observed[0].auth,'Bearer staging-secret');
-  assert.equal(observed[1].method,'POST');
-  assert.ok(!JSON.stringify(observed).includes('browser-secret'));
-  assert.equal((await(await fetch(a.url+'/api/runtime/credits',{headers:{cookie}})).json()).error,'API_ROUTE_NOT_ALLOWED');
+  const create=await fetch(a.url+'/api/runtime/projects',{
+   method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},
+   body:JSON.stringify({workspaceId:'w1',projectKey:'REAL_01',name:'真实项目',projectType:'AIGC_CONTENT'})
+  });
+  assert.equal(create.status,201);
+  assert.equal((await create.json()).data.id,'project-real-uuid');
+  assert.equal(observed.length,3);
+  assert.ok(observed.every(x=>x.auth==='Bearer '+scoped));
+  assert.ok(!JSON.stringify(await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json()).includes(scoped));
+  assert.equal((await fetch(a.url+'/api/runtime/credits',{headers:{cookie}})).status,403);
+ }finally{await a.close();}
+});
+test('shared staging access remains read-only even when global writes are enabled',async()=>{
+ const calls=[];
+ const a=await start(async(u,o)=>{calls.push({u,auth:o.headers.authorization});return fakeResponse({data:[]});});
+ try{
+  const login=await fetch(a.url+'/auth/login',{
+   method:'POST',headers:{origin:a.url,'content-type':'application/json'},
+   body:JSON.stringify({password:'test-password'})
+  });
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const session=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
+  assert.equal(session.mode,'staging-shared-readonly');
+  assert.equal(session.writesEnabled,false);
+  assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,200);
+  assert.equal((await fetch(a.url+'/api/runtime/projects',{
+   method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},
+   body:JSON.stringify({workspaceId:'w1',projectKey:'ABC',name:'Unsafe',projectType:'AIGC_CONTENT'})
+  })).status,403);
+  assert.equal(calls.length,1,'Unsafe write must be denied before upstream');
+  assert.equal(calls[0].auth,'Bearer staging-secret');
+ }finally{await a.close();}
+});
+test('scoped credential revocation invalidates the browser session on next Runtime request',async()=>{
+ let revoke=false;
+ const a=await start(async()=>{
+  if(revoke)return fakeResponse({error:'RUNTIME_CREDENTIAL_INACTIVE'},401);
+  return fakeResponse({data:[{id:'w1'}]});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  revoke=true;
+  assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,401);
+  const info=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
+  assert.equal(info.authenticated,false);
+ }finally{await a.close();}
+});
+test('scoped login never grants access to a platform admin bearer token',async()=>{
+ const a=await start(async()=>fakeResponse({data:[{id:'w1'}]}));
+ try{
+  const r=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:'staging-secret'})});
+  assert.equal(r.status,401);
  }finally{await a.close();}
 });
 test('cross-origin writes and direct front-end token use are rejected',async()=>{
