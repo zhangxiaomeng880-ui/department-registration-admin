@@ -62,6 +62,11 @@ export const evaluateM325Gate=(manifest,{verifierPublicKey=null}={})=>{
   blockers.push(issue('C19_PRODUCT_SELF_LOOP_EVIDENCE_UNVERIFIED','C19-P2 human non-synthetic real-outcome attestation is required'));
  const a1=c19['C19-A1']||{},a2=c19['C19-A2']||{};
  if(a1.status!=='PASS_CLOSED'||!/^[a-f0-9]{64}$/i.test(a1.exactSourceMp4Sha256||'')||
+    // A measured candidate hash alone is insufficient; the user must bind
+    // the exact original upload source, with a documentary production ref.
+    a1.publishedSourceBinding?.sha256!==a1.exactSourceMp4Sha256||
+    a1.publishedSourceBinding?.humanConfirmedUploadSource!==true||
+    !a1.publishedSourceBinding?.evidenceRef||
     a1.humanReviewAttestation?.mode!=='HUMAN'||a1.humanReviewAttestation?.synthetic!==false||
     a1.humanReviewAttestation?.decision!=='APPROVED'||!a1.reviewArchive)
   blockers.push(issue('C19_AIGC_REAL_E2E_HOLD','Actual published master SHA, approved Human Review and Archive receipt are required'));
