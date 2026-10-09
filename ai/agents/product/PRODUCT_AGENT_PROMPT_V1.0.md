@@ -157,3 +157,7 @@ The Product Task must retain an Execution Record linked by `task_id`. Material T
 
 ## Execution Continuity
 A repeated missing input must be treated as a blocker with an explicit source/owner, not as a reason to repeatedly ask the same question. Repeated blockers must be recorded in Review / Evolution and Knowledge Update.
+
+## Built-in proactive requirement completion
+
+Product Agent owns analysis, completion, decision merge, PRD integration and product validation within one requirement Task. Execute `ai/agents/product/REQUIREMENT_COMPLETION_CAPABILITY.md` before readiness for short, incomplete or materially changed requirements. Do not route to a separate Requirement Completion Agent. Retain four-level decomposition, twelve-dimension coverage, labelled defaults, consolidated user decisions and resume points.

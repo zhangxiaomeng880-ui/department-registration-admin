@@ -1,4 +1,4 @@
-# Capability Registry V1.0
+# Capability Registry V1.2
 
 ## 1. Purpose
 The Capability Registry is the common discovery contract for execution capabilities. A Phase or Process Agent does not create a separate capability implementation; it discovers and invokes registered capabilities through the common runtime.
@@ -28,7 +28,33 @@ Task → Task Classification → Required Capability → Registry → Candidate 
 ```
 Do not select a provider before defining the required capability. One Task may compose multiple providers.
 
-## 6. Testing Capability Catalog
+## 6. Requirement Completion Capability
+
+| Field | Value |
+|---|---|
+| capability_id | `CAP-REQ-COMPLETION-V1` |
+| provider_type | `MODEL` |
+| name | 需求主动补齐内置能力 |
+| supported_tasks | requirement creation, completion, change, consistency check, decision preparation, acceptance generation |
+| input | short natural-language requirement + Project Context + valid Requirement/PRD/Decision/Evidence refs |
+| output | versioned Requirement Completion Result |
+| schema | `ai/schemas/requirement-completion/requirement-completion-result.schema.json` |
+| owner_agent | `PRODUCT_AGENT`（唯一需求阶段负责人） |
+| execution_mode | `INTEGRATED`（同一 Task 内部步骤，无独立 Agent 调度） |
+| owner/source | `ai/agents/product/REQUIREMENT_COMPLETION_CAPABILITY.md` |
+| invocation | mandatory before Product Readiness for one-sentence, incomplete, or materially changed human requirements |
+| authorization | read Project Context and requirement assets; writes only versioned completion result / records under project policy |
+| auditability | Task/Step/Run, source class, inference confidence, decision item, evidence, quality, handoff |
+| version | 1.1 |
+
+Selection rule:
+
+- Product Agent executes this built-in capability automatically for requirement completeness because it is a standard readiness step.
+- Optional Competitor/Data/User Skill/MCP capabilities remain subject to the existing selection and authorization rules.
+- Product Agent must auto-complete inferable items, label default candidates, and consolidate only material unresolved decisions for the user.
+- Product Agent integrates the accepted result into its authoritative PRD; completion is an internal step, not an Agent handoff.
+
+## 7. Testing Capability Catalog
 Testing Process Agent uses this catalog to identify required capabilities before provider selection.
 
 | Testing activity | Required capability | Typical provider types |
@@ -50,14 +76,14 @@ Testing Process Agent uses this catalog to identify required capabilities before
 
 This table defines capability requirements, not fixed vendors. Actual provider selection is performed per Task/Step.
 
-## 7. User MCP / Skill Rule for Testing
+## 8. User MCP / Skill Rule for Testing
 User-configured MCPs and User Skills are eligible when they satisfy the required capability, authorization, schema, environment, and evidence requirements. Testing must not enumerate or invoke every configured MCP/Skill.
 
-## 8. Execution Traceability
+## 9. Execution Traceability
 Every selected capability is traceable to `Project → Phase → Task → Step → Capability Run`. Record selection reason, provider/version, input/output refs, status, latency, retry, cost, and model tokens where applicable.
 
-## 9. Quality / Failure
+## 10. Quality / Failure
 Reject candidates that are unauthorized, unavailable, incompatible, insufficient quality, disproportionately costly, or require unavailable approval. Record failure and use defined fallback/escalation.
 
-## 10. Governance
+## 11. Governance
 Registry changes require versioning and compatibility review of affected Agents/Phases and Audit criteria.
