@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root=dirname(fileURLToPath(import.meta.url));
-const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/credential-admin.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8','/credential-admin.css':'text/css; charset=utf-8'};
+const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/credential-admin.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/credential-admin.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8','/credential-admin.css':'text/css; charset=utf-8'};
 const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/credential-admin.html':'credential-admin.html','/app.js':'app.js','/requirements.js':'requirements.js','/credential-admin.js':'credential-admin.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css','/credential-admin.css':'credential-admin.css'};
 
 const headers={
