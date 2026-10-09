@@ -1,4 +1,4 @@
-# Conversation Orchestration V1.1
+# Conversation Orchestration V1.2
 
 > 定位：AI Native 交互编排层
 > 原则：Agent 不变，交互方式升级为自然语言人机协作；以最小必要 Token 获取足够上下文并保证准确性、质量和可追溯性。
@@ -9,7 +9,7 @@
 
 统一闭环：
 
-**User Intent → Context Resolution → Task / Agent Routing → Required Input Check → Capability Detection → Action → Verification / Gate → Output Artifact / Record → Next Action → User**
+**User Intent → Context Resolution → Task / Agent Routing → Requirement Completion（需求型 Task）→ Required Input Check → Capability Detection → Action → Verification / Gate → Output Artifact / Record → Next Action → User**
 
 Conversation Orchestrator 是编排层，不新增业务 Agent，不改变既有 Agent 职责。
 
@@ -53,6 +53,21 @@ Agent 每次接管 Task 后先判断：
 ### B. 缺少 Required Input
 
 只询问无法从 Project Context、Previous Output、Knowledge 或已有 Artifact 推导的信息。
+
+### B1. 需求需要主动补全
+
+当用户只提供一句话需求、需求细节不完整或需求变更可能影响已有规则时，Orchestrator 自动路由到 Requirement Completion Agent：
+
+1. 读取 Project Context、有效需求/决策/证据；
+2. 拆分页面级、模块级、指标级和功能点级需求；
+3. 遍历目标、数据源、更新、口径、交互、权限、状态、异常、提醒、依赖、范围和验收；
+4. 自动补全可可靠推导且可逆的内容；
+5. 把合理但未确认的值标记为默认候选；
+6. 只把无法可靠推导的重大取舍合并为一次用户决策提示；
+7. 保存 Resume Point，用户回答后从决策点继续；
+8. 生成 Requirement Completion Result 并交给 Product Agent 合入权威 PRD。
+
+不得等待用户逐项追问缺失内容。不得把默认候选静默升级为正式决定。
 
 ### C. 存在可选 Capability
 
@@ -125,7 +140,7 @@ Existing Valid Artifact?
 
 当 Task 的目标是形成需求时，Product Agent 负责综合：
 
-- 用户需求输入
+- 用户需求输入\n- Requirement Completion Result
 - Competitor Analysis Artifact
 - Data Analysis Artifact
 - Project Context
@@ -284,7 +299,7 @@ Orchestrator 根据：
 
 选择负责 Agent / Task。
 
-如果用户明确点名 Agent，则在不违反流程和权限的情况下优先按用户指定执行；如果指定 Agent 与当前状态不一致，应解释并建议正确的下一步，而不是盲目跳阶段。
+如果用户明确点名 Agent，则在不违反流程和权限的情况下优先按用户指定执行；如果指定 Agent 与当前状态不一致，应解释并建议正确的下一步，而不是盲目跳阶段。\n\n需求型 Task 的默认路由为：`User Intent → Requirement Completion Agent → Product Agent → PRD / Product Phase Output`。Requirement Completion Agent 是 Capability Agent，不拥有 Product Phase。
 
 ## 13. Gate 驱动的对话
 
