@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root=dirname(fileURLToPath(import.meta.url));
-const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8'};
-const ASSETS={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css'};
+const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8'};
+const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/app.js':'app.js','/requirements.js':'requirements.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css'};
 
 const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
@@ -32,8 +32,11 @@ const allowed=(method,path)=>{
     if(/^\/api\/runtime\/projects\/[a-zA-Z0-9-]{1,64}\/(knowledge-bindings|audit-events|lifecycle|governance|stage-transitions|aigc-foundation|aigc-script-domain|aigc-breakdown|aigc-format-strategy|aigc-asset-system|aigc-generation-image|aigc-video-audio-production|aigc-edit-timeline|aigc-mastering|aigc-distribution-package|aigc-release-publishing|aigc-performance|aigc-review|product-domain|product-delivery-domain|product-engineering-domain|product-quality-domain|product-outcome|product-review)$/.test(path))return true;
     if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path))return true;
     if(/^\/api\/runtime\/workspaces\/[a-zA-Z0-9-]{1,64}\/(audit-evidence|global-search)$/.test(path))return true;
+    if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/requirement-completions(?:\/[A-Za-z0-9-]{1,80})?$/.test(path))return true;
   }
-  return method==='POST'&&path==='/api/runtime/projects';
+  if(method==='POST'&&path==='/api/runtime/projects')return true;
+  if(method==='POST'&&/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/requirement-completions(?:\/[A-Za-z0-9-]{1,80}\/(decisions|handoff))?$/.test(path))return true;
+  return false;
 };
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
   const sessions=new Map(),failed=new Map();
@@ -161,9 +164,9 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
         if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write')))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
         const body=req.method==='POST'?await readJson(req):null;
-        if(req.method==='POST'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
+        if(req.method==='POST'&&path==='/api/runtime/projects'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
         const controller=new AbortController();
-        const timeout=setTimeout(()=>controller.abort(),15000);
+        const timeout=setTimeout(()=>controller.abort(),path.includes('/requirement-completions')?120000:15000);
         try{
           const result=await fetchImpl(base+path+url.search,{
             method:req.method,headers:{
@@ -203,6 +206,10 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           }
           return json(res,result.status,payload);
         }finally{clearTimeout(timeout);}
+      }
+      if(req.method==='GET'&&path==='/requirements'){
+        const bytes=await readFile(join(root,'public','requirements.html'));
+        res.writeHead(200,{...headers,'content-type':MIME['/requirements.html']});return res.end(bytes);
       }
       // Addressable project pages: deep links and browser back/forward always
       // load the same authenticated shell, never a fabricated project snapshot.
