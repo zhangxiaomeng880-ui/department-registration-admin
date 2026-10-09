@@ -1,0 +1,31 @@
+name: Requirement Completion Workbench MVP
+on:
+  push:
+    branches: [feat/requirement-completion-workbench-mvp]
+    paths:
+      - "apps/ai-native-console/public/requirements.*"
+      - "apps/ai-native-console/server.mjs"
+      - "apps/ai-native-console/tests/requirements.test.mjs"
+      - ".github/workflows/requirement-completion-workbench.yml"
+  pull_request:
+    paths:
+      - "apps/ai-native-console/public/requirements.*"
+      - "apps/ai-native-console/server.mjs"
+      - "apps/ai-native-console/tests/requirements.test.mjs"
+      - ".github/workflows/requirement-completion-workbench.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  workbench-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/ai-native-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: node --check server.mjs && node --check public/requirements.js
+      - run: node --test tests/requirements.test.mjs tests/console.test.mjs
