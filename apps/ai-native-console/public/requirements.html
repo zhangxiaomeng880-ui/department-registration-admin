@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>需求补全 Agent · AI Native 2.0</title>
+  <title>需求 Agent · AI Native 2.0</title>
   <link rel="stylesheet" href="/requirements.css">
 </head>
 <body>
@@ -14,8 +14,8 @@
   </header>
   <main>
     <section class="hero">
-      <div><span class="eyebrow">REQUIREMENT COMPLETION AGENT</span><h1>一句话，补全为可执行需求</h1><p>自动读取项目上下文，按页面、模块、指标、功能四级展开；只把真正影响范围、成本或合规的事项集中交给你决策。</p></div>
-      <div class="capability"><b>CAP-REQ-COMPLETION-V1</b><span>Product Capability Agent</span><span>Staging · 独立审计前不可晋级生产</span></div>
+      <div><span class="eyebrow">需求分析 · 主动补齐 · PRD 整理</span><h1>一句话，补全为可执行需求</h1><p>自动读取项目上下文，按页面、模块、指标、功能四级展开；只把真正影响范围、成本或合规的事项集中交给你决策。</p></div>
+      <div class="capability"><b>需求 Agent</b><span>内置需求分析与主动补齐能力</span><span>Staging · 独立审计前不可晋级生产</span></div>
     </section>
 
     <section class="layout">
@@ -28,7 +28,7 @@
           </div>
           <label>应用形态<select id="applicationType"><option value="UNSPECIFIED">暂不限定</option><option value="WEBSITE">网站</option><option value="APP">APP</option><option value="MINI_PROGRAM">小程序</option><option value="MULTI_CHANNEL">网站 + APP + 小程序</option></select></label>
           <label>一句话需求<textarea id="statement" maxlength="4000" placeholder="例如：做一个网站、APP 和小程序的用户访问、性能与异常分析平台，支持提醒，但暂不包含工单治理。"></textarea></label>
-          <div class="actions"><span id="inputStatus" class="status"></span><button id="execute" class="primary">运行需求补全 Agent</button></div>
+          <div class="actions"><span id="inputStatus" class="status"></span><button id="execute" class="primary">运行需求 Agent</button></div>
         </section>
 
         <section id="resultPanel" class="panel result" hidden>
@@ -41,7 +41,7 @@
           <div id="levelTip" class="level-tip"></div>
           <div id="requirementsList" class="requirements-list"></div>
           <section class="decision-block"><h3>需要你确认的事项</h3><p>系统已合并重复问题；推荐项只是默认候选，可由你覆盖。</p><form id="decisionForm"><div id="decisionList"></div><button id="submitDecisions" class="primary" type="submit">提交决策并继续</button></form></section>
-          <section class="handoff"><div><h3>交给 Product Agent</h3><p>所有必要决策完成后，生成带上下文指纹的 PRD 交接包；不会直接覆盖已有 PRD。</p></div><button id="handoff" class="outline" disabled>生成 PRD 交接包</button></section>
+          <section class="handoff"><div><h3>继续整理 PRD</h3><p>所有必要决策完成后，生成带上下文指纹的 PRD 整理包；不会直接覆盖已有 PRD。</p></div><button id="handoff" class="outline" disabled>生成 PRD 整理包</button></section>
         </section>
       </div>
 

@@ -70,7 +70,7 @@ $('execute').addEventListener('click',async()=>{
   $('execute').disabled=true;$('execute').textContent='Agent 正在读取上下文并补全…';$('inputStatus').textContent='';
   try{state.current=await api('/api/runtime/projects/'+encodeURIComponent(state.projectId)+'/requirement-completions',{method:'POST',body:JSON.stringify({statement,applicationType:$('applicationType').value})});render();await loadHistory();toast('需求补全已完成并持久化。');}
   catch(error){$('inputStatus').textContent='执行失败：'+error.message;}
-  finally{$('execute').disabled=!state.session.writesEnabled;$('execute').textContent='运行需求补全 Agent';}
+  finally{$('execute').disabled=!state.session.writesEnabled;$('execute').textContent='运行需求 Agent';}
 });
 $('decisionForm').addEventListener('submit',async event=>{
   event.preventDefault();const answers=[];
