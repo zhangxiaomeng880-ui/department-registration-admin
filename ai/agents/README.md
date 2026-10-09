@@ -155,6 +155,6 @@ Agent 应能够提供：
 
 状态：`COMPLETED / PARTIAL / BLOCKED / SKIPPED`。
 
-完整架构见 `ai/agents/AGENT_ARCHITECTURE_V1.3.md`。
+完整架构见 `ai/agents/AGENT_ARCHITECTURE_V1.6.md`。
 
 设计过程沉淀见 `ai/retrospective/AGENT_MD_CONTRACT_DESIGN_V1.0.md`。

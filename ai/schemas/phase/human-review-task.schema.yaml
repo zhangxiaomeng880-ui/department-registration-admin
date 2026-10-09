@@ -1,0 +1,23 @@
+schema: HumanReviewTask
+version: 1.0
+required: [review_task_id, project_id, phase_id, review_item, responsibility_level, status, created_at]
+fields:
+  review_task_id: string
+  project_id: string
+  phase_id: string
+  review_item: string
+  responsibility_level: string
+  reason_human_required: string
+  ai_analysis: string
+  evidence_ids: [string]
+  decision_options: [string]
+  decision_owner: string
+  status: string
+  decision: string
+  decision_evidence_ids: [string]
+  created_at: datetime
+  resolved_at: datetime
+rules:
+  - responsibility_level == HUMAN_REVIEW_REQUIRED requires decision_owner and resolved decision before handoff
+  - unresolved HumanReviewTask blocks phase handoff
+  - decision must be traceable to decision_evidence_ids when evidence is required

@@ -1,0 +1,25 @@
+schema: PhaseHandoff
+version: 1.1
+required: [handoff_id, project_id, from_phase_id, status, approved_phase_output_ids, gate_result_ids, audit_gate_result_id, handoff_allowed, created_at]
+fields:
+  handoff_id: string
+  project_id: string
+  from_phase_id: string
+  to_phase_id: string
+  status: string
+  approved_phase_output_ids: [string]
+  gate_result_ids: [string]
+  audit_result_id: string
+  audit_gate_result_id: string
+  handoff_allowed: boolean
+  readiness_requirements: [object]
+  user_confirmation_required: boolean
+  user_confirmation_status: string
+  next_phase_started_at: datetime
+  created_at: datetime
+rules:
+  - audit_gate_result_id is required before an independently audited handoff
+  - handoff_allowed must equal the applicable AuditGateResult.handoff_allowed value
+  - if AuditGateResult.status in [FAIL, BLOCKED, PARTIAL], handoff_allowed must be false unless an explicit permitted exception exists
+  - next_phase_started_at must remain empty while handoff_allowed is false
+  - next phase may start only after required user confirmation when user_confirmation_required is true

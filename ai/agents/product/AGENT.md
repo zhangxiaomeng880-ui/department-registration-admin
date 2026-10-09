@@ -58,7 +58,7 @@ For the Product Phase entry point, Project initialization / user requirement may
 
 缺少关键输入 → `WAITING_FOR_INPUT`；需要用户选择 → `USER_DECISION_REQUIRED`。
 
-Product Phase Readiness follows `PHASE_CONTRACT_V1.0.md`.
+Product Phase Readiness follows `PHASE_CONTRACT_V1.1.md`.
 
 ## 7. Context Assembly
 
@@ -251,6 +251,6 @@ Product Task、Capability Task、Step、Tool / MCP / Skill Run、Model Run 均�
 ## 25. Contract References
 
 - `ai/rules/AGENT_MD_CONTRACT_V1.0.md`
-- `ai/rules/PHASE_CONTRACT_V1.0.md`
+- `ai/rules/PHASE_CONTRACT_V1.1.md`
 - `ai/rules/EXECUTION_RECORD_CONTRACT_V1.0.md`
 - `ai/rules/CAPABILITY_REGISTRY_V1.0.md`

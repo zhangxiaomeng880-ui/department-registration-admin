@@ -1,168 +1,167 @@
-# Requirement → Release AI Native Workflow
+# Requirement → Delivery Phase AI Native Workflow
 
-本流程把 GitHub Issue 作为 AI Native 产品需求的唯一入口，并通过项目资产保持全过程可追溯。
+This workflow describes the AI Native delivery lifecycle. GitHub Issue is the normal requirement-intake mechanism, while GitHub Project remains a collaboration/state layer and does not define Phase execution order.
 
 ## 0. Requirement Intake
 
-**输入：** 用户问题 / 业务目标 / 数据异常 / 用户反馈
+**Input:** user request, business goal, data anomaly, or user feedback.
 
-**AI：** 帮助澄清问题、补齐背景、识别缺失信息。
+**AI:** clarify the problem, collect missing context, and identify readiness gaps.
 
-**人：** 确认问题是否值得进入产品流程。
+**Human:** confirm whether the request should enter the product lifecycle.
 
-**输出：** GitHub Issue（使用 AI Native Requirement 模板）。
+**Output:** Requirement / Issue record.
 
----
-
-## 1. Research
-
-AI 收集和整理相关事实：用户反馈、行为数据、竞品、行业资料、历史方案。
-
-**输出：** Research Note。
-
-**原则：** 区分事实、解释、假设，避免把 AI 推断当成事实。
+Requirement Intake is an entry point, not a Delivery Phase.
 
 ---
 
-## 2. Opportunity
+## Delivery Phase Lifecycle
 
-AI 将研究结果转化为：
+The first Delivery Phase is selected by project configuration and readiness rules. It is not hard-coded as Project → Research.
 
-- 用户问题
-- 业务问题
-- 机会点
-- 待验证假设
-- 成功指标
+### 1. Research
 
-**人：** 确认问题定义和机会是否成立。
+Collect and organize relevant facts: user feedback, behavioral data, competitors, industry evidence, and historical solutions.
 
----
+**Output:** Research Note / research artifact.
 
-## 3. Product / PRD
+### 2. Opportunity
 
-AI 协助形成：
+Transform validated research into:
 
-- User Story
-- 使用场景
-- 业务规则
-- 功能范围
-- 非目标范围
-- 异常情况
-- 验收标准
+- user problems;
+- business problems;
+- opportunities;
+- hypotheses to validate;
+- success measures.
 
-**人：** 最终确认产品方案和取舍。
+**Human:** confirm the problem and opportunity definition.
 
-**输出：** `product/prd/`。
+**Output:** Opportunity Definition.
 
----
+### 3. Product
 
-## 4. Design
+Produce the authoritative product definition, including:
 
-AI 协助形成信息架构、交互和视觉方案。
+- User Story;
+- scenarios;
+- business rules;
+- scope / non-scope;
+- exceptions;
+- acceptance criteria.
 
-**输出：** `design/` 下的设计资产或原型。
+**Human:** confirm product decisions and trade-offs.
 
-**验收：** 设计必须与已确认产品规则一致。
+**Output:** Versioned PRD.
 
----
+### 4. Design
 
-## 5. Planning
+Translate the approved product definition into information architecture, interaction, visual design, and applicable design-system resources.
 
-AI 将确认后的需求拆成可执行任务，并明确：
+**Output:** Approved Design Assets / Design Specification.
 
-- Task
-- 依赖
-- 影响范围
-- 验收标准
-- 测试范围
+**Gate:** Design must remain consistent with the approved product rules.
 
-**输出：** GitHub Project 中可执行的任务。
+### 5. Planning
 
----
+Translate approved Product and Design outputs into executable engineering tasks, dependencies, impact scope, acceptance criteria, and test scope.
 
-## 6. Engineering
+**Output:** Engineering Plan / Tasks.
 
-AI 在现有代码基础上实现需求。
+### 6. Coding / Engineering
 
-要求：
+Implement the approved plan in the existing repository.
 
-1. 修改前先读取相关规则和现有实现。
-2. 优先增量修改。
-3. 不擅自改变已确认产品逻辑。
-4. 涉及高影响数据结构或架构变化时先说明。
+Requirements:
 
-**输出：** Branch / Commit / Pull Request。
+1. Read applicable rules and existing implementation before modification.
+2. Prefer incremental changes.
+3. Do not silently change approved product logic.
+4. Escalate high-impact architecture or data-model changes.
 
----
+**Output:** Branch / Commit / Pull Request / Engineering Artifact.
 
-## 7. QA
+### 7. Testing
 
-AI 根据验收标准执行或辅助生成测试：
+Testing independently verifies functional behavior against approved requirements and engineering expectations, including:
 
-- 正常流程
-- 边界条件
-- 异常流程
-- 回归影响
-- 前后台联动
+- normal flows;
+- boundary conditions;
+- exception flows;
+- regression impact;
+- frontend/backend integration;
+- applicable preview/runtime verification.
 
-**输出：** 测试结果。
+**Output:** Test Report / Evidence.
 
-**人：** 进行产品体验验收。
+Testing PASS does not imply Compliance PASS or Audit PASS.
 
----
+### 8. Release / Deploy
 
-## 8. Release
+Release starts only after required engineering, Testing, Compliance (when applicable), Quality, and Independent Audit gates have passed.
 
-发布前确认：
+Confirm:
 
-- 需求已确认
-- PR 已 Review
-- 测试通过
-- 发布范围明确
-- 回滚方案可用
+- approved product scope;
+- reviewed PR;
+- required tests passed;
+- release scope;
+- deployment/environment readiness;
+- rollback strategy.
 
-**输出：** Release Note / Version。
+**Output:** Release Record / Version.
 
----
+### 9. Maintenance / Iteration
 
-## 9. Analytics
+After release, monitor runtime behavior, user feedback, incidents, metrics, and operational issues. Material findings may create a new Requirement Intake or enter a configured follow-up Phase.
 
-上线后观察：
-
-- 核心指标
-- 用户行为
-- 用户反馈
-- 异常
-- 实验结果
-
-AI 输出应区分事实、解释、假设和建议。
+**Output:** Maintenance Record / Analysis / New Requirement when applicable.
 
 ---
 
-## 10. Iteration
+## Cross-Phase Gates
 
-数据和反馈回到新的 Requirement / Research，形成闭环：
+Quality, Compliance, and Audit are not interchangeable:
 
 ```text
-Requirement
-    ↓
-Research
-    ↓
-Opportunity
-    ↓
-Product
-    ↓
-Design
-    ↓
-Planning
-    ↓
-Engineering
-    ↓
-QA
-    ↓
-Release
-    ↓
-Analytics
-    ↓
-Iteration ─────→ Requirement
+Current Delivery Phase
+        ↓
+Phase Output
+        ↓
+Quality Gate
+        ↓
+Compliance Gate (when applicable)
+        ↓
+Independent Audit Gate
+        ↓
+Phase Handoff
+        ↓
+Next Configured Delivery Phase
+```
+
+- **Testing / QA:** verifies product and technical behavior.
+- **Compliance:** verifies applicable rules, policies, constraints, and required evidence.
+- **Audit:** independently verifies process integrity, evidence, conclusions, and Gate correctness.
+
+Audit must not be performed or self-certified by the Agent being audited.
+
+## Traceability
+
+The lifecycle should maintain references among Requirement, Phase, Artifact, Task, Execution Record, Decision Record, PR, Release, and Analytics records where applicable.
+
+The approved Phase Output is the primary input boundary for the next Phase.
+
+## Closed Loop
+
+```text
+Requirement Intake
+      ↓
+Configured Delivery Phase Lifecycle
+      ↓
+Release / Deploy
+      ↓
+Maintenance / Iteration
+      ↓
+New Requirement Intake when a material follow-up is identified
 ```

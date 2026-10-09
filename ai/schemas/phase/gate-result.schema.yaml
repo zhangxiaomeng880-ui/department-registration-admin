@@ -1,0 +1,17 @@
+schema: GateResult
+version: 1.0
+required: [gate_result_id, project_id, phase_id, gate_type, status, evaluated_at]
+fields:
+  gate_result_id: string
+  project_id: string
+  phase_id: string
+  gate_type: string
+  status: string
+  evaluator_agent_id: string
+  independent: boolean
+  criteria_version: string
+  evidence_ids: [string]
+  failed_criteria: [object]
+  blocking: boolean
+  decision_reason: string
+  evaluated_at: datetime

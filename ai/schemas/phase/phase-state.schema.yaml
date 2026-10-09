@@ -1,0 +1,25 @@
+schema: PhaseState
+version: 1.0
+required: [phase_state_id, project_id, phase_id, phase_name, status, entered_at]
+fields:
+  phase_state_id: string
+  project_id: string
+  phase_id: string
+  phase_name: string
+  process_agent_id: string
+  status: string
+  entry_reason: string
+  input_artifact_ids: [string]
+  current_task_ids: [string]
+  output_artifact_ids: [string]
+  quality_gate_status: string
+  compliance_gate_status: string
+  audit_gate_status: string
+  handoff_status: string
+  next_phase_id: string
+  blocked_reason: string
+  user_decision_required: boolean
+  user_decision_id: string
+  entered_at: datetime
+  updated_at: datetime
+  exited_at: datetime

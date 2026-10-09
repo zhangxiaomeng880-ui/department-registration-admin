@@ -21,15 +21,18 @@ Current Process Agents include:
 
 - Project Agent
 - Research Agent
+- Opportunity Agent
 - Product Agent
 - Design Agent
 - Planning Agent
 - Coding / Engineering Agent
-- Testing / QA Agent
+- Testing Agent
 - Compliance Agent
 - Audit Agent
 - Release / Deploy Agent
 - Maintenance Agent
+
+Project Agent is a project-lifecycle / orchestration agent and is not a Delivery Phase. Audit Agent is an independent assurance agent and is not a Delivery Phase. Compliance Agent is an applicable compliance gate/assurance process and is not interchangeable with Testing or Audit.
 
 A Process Agent may call Capability Agents, Tools, MCPs, User Skills, and Models, but does not copy specialist implementations.
 
@@ -37,7 +40,7 @@ A Process Agent may call Capability Agents, Tools, MCPs, User Skills, and Models
 
 Capability Agents provide reusable specialist capabilities and can operate independently or be invoked by Process Agents.
 
-Current specialist Capability Agents:
+Current specialist Capability Agents include:
 
 - Competitor Analysis Agent
 - Data Analysis Agent
@@ -362,7 +365,7 @@ An Agent must not self-certify independent Audit.
 ## 19. Contract References
 
 - `ai/rules/AGENT_MD_CONTRACT_V1.0.md`
-- `ai/rules/PHASE_CONTRACT_V1.0.md`
-- `ai/rules/EXECUTION_RECORD_CONTRACT_V1.0.md`
+- `ai/rules/PHASE_CONTRACT_V1.1.md`
+- `ai/rules/EXECUTION_RECORD_CONTRACT_V1.1.md`
 - `ai/rules/CAPABILITY_REGISTRY_V1.0.md`
 - `ai/rules/CONVERSATION_ORCHESTRATION.md`

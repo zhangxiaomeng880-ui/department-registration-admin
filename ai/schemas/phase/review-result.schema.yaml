@@ -1,0 +1,19 @@
+schema: ReviewResult
+version: 1.0
+required: [review_id, project_id, phase_id, review_type, status, completed_at]
+fields:
+  review_id: string
+  project_id: string
+  phase_id: string
+  review_type: string
+  status: string
+  ai_analysis_ids: [string]
+  human_review_task_ids: [string]
+  decision_owner: string
+  decision: string
+  evidence_ids: [string]
+  completed_at: datetime
+rules:
+  - HUMAN_REVIEW_REQUIRED items cannot be represented as AI-only approval
+  - unresolved required human review blocks phase handoff
+  - review_result does not replace Independent Audit Result

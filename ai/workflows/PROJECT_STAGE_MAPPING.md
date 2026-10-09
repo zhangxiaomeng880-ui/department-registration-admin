@@ -1,26 +1,103 @@
-# GitHub Project Stage Mapping
+# GitHub Project State Mapping
 
-GitHub Project 用于承载需求和任务状态；Issue 是需求入口，Repository 是产品资产与代码的事实来源。
+GitHub Project is a collaboration and state-management layer. It is not the AI Native Phase execution lifecycle and must not be used as a substitute for Phase Contracts or Agent orchestration.
 
-建议 Project #1 使用以下阶段：
+## Layer Boundary
 
-| Stage | 含义 | 主要 AI 工作 | 主要输出 |
-|---|---|---|---|
-| Requirement | 新需求入口 | 澄清问题、补齐信息 | Issue |
-| Research | 研究中 | 用户/竞品/数据研究 | Research Note |
-| Product | 产品定义 | PRD、User Story、验收标准 | PRD |
-| Design | 设计中 | UX/UI/原型 | Design Asset |
-| Ready | 待开发 | 任务拆解、依赖确认 | Task |
-| Engineering | 开发中 | Coding / Review | PR / Commit |
-| QA | 测试中 | 自动化/回归/体验检查 | Test Result |
-| Release | 待发布/发布中 | Release 检查 | Release Note |
-| Analytics | 数据验证 | 指标与反馈分析 | Analysis |
-| Done | 已完成 | 总结与资产归档 | Closed Loop |
+```text
+Project Lifecycle / Collaboration Layer
+        │
+        ├── Issue
+        ├── Project state
+        ├── Repository / PR
+        └── Release / Analytics references
 
-## 使用规则
+AI Native Delivery Phase Lifecycle
+        │
+        ├── Research
+        ├── Opportunity
+        ├── Product
+        ├── Design
+        ├── Planning
+        ├── Coding / Engineering
+        ├── Testing
+        ├── Release / Deploy
+        └── Maintenance / Iteration
 
-1. 所有新产品需求优先从 Issue 进入。
-2. Project 不替代 PRD、代码或测试，它负责状态与协作。
-3. Issue、PRD、PR、Release、Analytics 应互相引用。
-4. 需求未经过 Product 确认，不直接进入 Engineering。
-5. Engineering 完成不等于产品完成，必须经过 QA、Release 和 Analytics。
+Cross-Phase Assurance
+        ├── Quality Gate
+        ├── Compliance Gate (when applicable)
+        └── Independent Audit Gate
+```
+
+## Project States
+
+Project states are collaboration/status indicators and do not define Agent execution order.
+
+| Project State | Purpose | Typical evidence |
+|---|---|---|
+| Requirement | New requirement / intake | Issue |
+| In Progress | Active work in the current Phase | Task / execution record |
+| Blocked | Work cannot proceed | Blocker / decision record |
+| Review | Human or quality review pending | Artifact / review record |
+| Ready | Current Phase complete and next Phase may be started | Phase Output + Gates |
+| Released | Release completed | Release record |
+| Done | Project objective / work item closed | Final artifact + closure evidence |
+
+The exact Project state names may differ by GitHub Project configuration. The AI Native Phase is stored separately as authoritative execution state.
+
+## Phase State
+
+The authoritative Phase lifecycle follows the Phase Contract, not the GitHub Project state field:
+
+```text
+Configured Delivery Phase
+        ↓
+Input Readiness
+        ↓
+Execution
+        ↓
+Phase Output
+        ↓
+Quality Gate
+        ↓
+Compliance Gate (if applicable)
+        ↓
+Independent Audit Gate
+        ↓
+Phase Handoff
+        ↓
+Next Configured Delivery Phase
+```
+
+Project state is updated from the Phase lifecycle; it does not determine whether a Phase has passed its Gate.
+
+## Canonical Phase Names
+
+- Research
+- Opportunity
+- Product
+- Design
+- Planning
+- Coding / Engineering
+- Testing
+- Release / Deploy
+- Maintenance / Iteration
+
+Do not introduce `QA` as a second Phase name for Testing. `QA` may be used as an implementation/team label only.
+
+Do not introduce `Ready` as a Delivery Phase. `Ready` is a Project collaboration state representing readiness for the next configured Phase.
+
+## Entry and Handoff
+
+A new product request normally enters through an Issue / Requirement Intake. The first Delivery Phase is selected by Project configuration and readiness rules; it is not hard-coded as Project → Research.
+
+A Phase may start only when its required Input and Readiness conditions are satisfied.
+
+A Phase is complete only after its required Quality Gate and applicable Compliance Gate and Independent Audit Gate have passed. The approved Phase Output becomes the primary input boundary for the next Phase.
+
+## Traceability
+
+Issue, Phase, Artifact, Task, Execution Record, PR, Release, and Analytics records should cross-reference one another where applicable.
+
+Project status must never be treated as proof of execution quality, compliance, or audit approval.

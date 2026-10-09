@@ -1,0 +1,23 @@
+schema: AuditGateResult
+version: 1.0
+required: [audit_gate_result_id, audit_id, phase_id, status, blocking, handoff_allowed, evaluated_at]
+fields:
+  audit_gate_result_id: string
+  audit_id: string
+  project_id: string
+  phase_id: string
+  status: string
+  blocking: boolean
+  evidence_ids: [string]
+  decision_reason: string
+  handoff_allowed: boolean
+  exception_id: string
+  evaluated_at: datetime
+rules:
+  - if: status in [FAIL, BLOCKED]
+    then: handoff_allowed=false
+  - if: status in [PASS, PASS_WITH_FINDINGS]
+    then: handoff_allowed=true
+  - if: status == PARTIAL
+    then: handoff_allowed=false
+  - exception_id may override a blocked handoff only when an explicit exception policy permits it

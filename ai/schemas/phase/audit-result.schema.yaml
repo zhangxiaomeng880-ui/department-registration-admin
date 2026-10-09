@@ -1,0 +1,20 @@
+schema: AuditResult
+version: 1.0
+required: [audit_id, project_id, phase_id, scope, auditor_agent_id, independence_status, result, evidence_ids, audited_at]
+fields:
+  audit_id: string
+  project_id: string
+  phase_id: string
+  audited_agent_id: string
+  audited_execution_id: string
+  scope: string
+  auditor_agent_id: string
+  independence_status: string
+  contract_versions: [string]
+  evidence_ids: [string]
+  findings: [object]
+  result: string
+  blocking: boolean
+  remediation_required: boolean
+  remediation_ids: [string]
+  audited_at: datetime
