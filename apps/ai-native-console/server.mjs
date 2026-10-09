@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root=dirname(fileURLToPath(import.meta.url));
-const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8'};
-const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/app.js':'app.js','/requirements.js':'requirements.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css'};
+const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/credential-admin.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8','/credential-admin.css':'text/css; charset=utf-8'};
+const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/credential-admin.html':'credential-admin.html','/app.js':'app.js','/requirements.js':'requirements.js','/credential-admin.js':'credential-admin.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css','/credential-admin.css':'credential-admin.css'};
 
 const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
@@ -38,9 +38,14 @@ const allowed=(method,path)=>{
   if(method==='POST'&&/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/requirement-completions(?:\/[A-Za-z0-9-]{1,80}\/(decisions|handoff))?$/.test(path))return true;
   return false;
 };
+const credentialAdminAllowed=(method,path)=>{
+  if(method==='GET'&&['/api/runtime/workspaces','/api/runtime/identities','/api/runtime/rbac-roles','/api/runtime/workspace-memberships','/api/runtime/api-credentials'].includes(path))return true;
+  if(method==='POST'&&['/api/runtime/identities','/api/runtime/workspace-memberships','/api/runtime/api-credentials'].includes(path))return true;
+  return method==='POST'&&/^\/api\/runtime\/api-credentials\/[A-Za-z0-9-]{1,80}\/revoke$/.test(path);
+};
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
   const sessions=new Map(),failed=new Map();
-  if(!env.RUNTIME_API_BASE_URL||(env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
+  if(!env.RUNTIME_API_BASE_URL||((env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'||env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true')&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
@@ -97,7 +102,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       if(req.method==='GET'&&path==='/auth/session'){
         const s=sess(req);
-        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',environment:'STAGING'});
+        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',credentialAdmin:!!s&&s.mode==='staging-credential-admin',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',credentialAdminLoginEnabled:env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true',environment:'STAGING'});
       }
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
@@ -139,6 +144,10 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
             permissions=self.permissions;
             mode='scoped';
           }finally{clearTimeout(timeout);}
+        }else if(typeof body.adminPassword==='string'&&env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true'&&
+          env.CONSOLE_ADMIN_PASSWORD&&equals(body.adminPassword,env.CONSOLE_ADMIN_PASSWORD)){
+          credential=env.RUNTIME_API_TOKEN;
+          mode='staging-credential-admin';
         }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&
           env.CONSOLE_ADMIN_PASSWORD&&equals(body.password,env.CONSOLE_ADMIN_PASSWORD)){
           credential=env.RUNTIME_API_TOKEN;
@@ -149,8 +158,9 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         }
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
-        sessions.set(sid,{exp:Date.now()+8*3600*1000,mode,credential,identityId,permissions});
-        return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800${secure}`});
+        const ttl=mode==='staging-credential-admin'?1800:28800;
+        sessions.set(sid,{exp:Date.now()+ttl*1000,mode,credential,identityId,permissions});
+        return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ttl}${secure}`});
       }
       if(req.method==='POST'&&path==='/auth/logout'){
         const sid=cookies(req).ain_session;if(sid)sessions.delete(sid);
@@ -159,10 +169,16 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       if(path.startsWith('/api/')){
         const session=sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
-        if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
+        if(session.mode==='staging-credential-admin'){
+          if(!credentialAdminAllowed(req.method,path))throw error('CREDENTIAL_ADMIN_ROUTE_NOT_ALLOWED',403);
+        }else if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
         if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&session.mode!=='scoped')
           throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
-        if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write')))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
+        if(req.method!=='GET'){
+          const scopedWrite=env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write');
+          const credentialAdminWrite=session.mode==='staging-credential-admin'&&credentialAdminAllowed(req.method,path);
+          if(!scopedWrite&&!credentialAdminWrite)throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
+        }
         const body=req.method==='POST'?await readJson(req):null;
         if(req.method==='POST'&&path==='/api/runtime/projects'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
         const controller=new AbortController();
@@ -206,6 +222,10 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           }
           return json(res,result.status,payload);
         }finally{clearTimeout(timeout);}
+      }
+      if(req.method==='GET'&&path==='/credential-admin'){
+        const bytes=await readFile(join(root,'public','credential-admin.html'));
+        res.writeHead(200,{...headers,'content-type':MIME['/credential-admin.html']});return res.end(bytes);
       }
       if(req.method==='GET'&&path==='/requirements'){
         const bytes=await readFile(join(root,'public','requirements.html'));
