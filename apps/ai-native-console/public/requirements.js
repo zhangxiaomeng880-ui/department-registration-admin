@@ -4,7 +4,7 @@ const api=async(path,options={})=>{const response=await fetch(path,{...options,h
 const clear=node=>{while(node.firstChild)node.firstChild.remove();};
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!=null)el.textContent=text;return el;};
 const toast=message=>{$('toast').textContent=message;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600);};
-const statusLabel=status=>({REVIEW_REQUIRED:'待产品决策',READY_FOR_PRD:'可生成 PRD 交接',HANDOFF_READY:'已生成交接包',FAILED:'执行失败'}[status]||status||'—');
+const statusLabel=status=>({REVIEW_REQUIRED:'待产品决策',READY_FOR_PRD:'可整理 PRD',HANDOFF_READY:'已生成 PRD 整理包',FAILED:'执行失败'}[status]||status||'—');
 const tips={PAGE:'页面级：定义前台、管理后台各有哪些页面，以及页面目标、角色和入口。',MODULE:'模块级：定义页面内模块的职责、边界、数据来源和模块间关系。',METRIC:'指标级：定义口径、单位、维度、时间窗、刷新延迟、空值与异常状态。',FUNCTION:'功能点：定义搜索、下拉、筛选、点击、导出、提醒等触发条件、权限和结果反馈。'};
 
 async function bootstrap(){
@@ -78,5 +78,5 @@ $('decisionForm').addEventListener('submit',async event=>{
   if(!answers.length){toast('请至少选择一项决策。');return;}
   try{state.current=await api('/api/runtime/projects/'+encodeURIComponent(state.projectId)+'/requirement-completions/'+encodeURIComponent(state.current.id)+'/decisions',{method:'POST',body:JSON.stringify({answers})});render();await loadHistory();toast('决策已记录，断点已更新。');}catch(error){toast('提交失败：'+error.message);}
 });
-$('handoff').addEventListener('click',async()=>{try{state.current=await api('/api/runtime/projects/'+encodeURIComponent(state.projectId)+'/requirement-completions/'+encodeURIComponent(state.current.id)+'/handoff',{method:'POST',body:'{}'});render();await loadHistory();toast('PRD 交接包已生成。');}catch(error){toast('生成失败：'+error.message);}});
+$('handoff').addEventListener('click',async()=>{try{state.current=await api('/api/runtime/projects/'+encodeURIComponent(state.projectId)+'/requirement-completions/'+encodeURIComponent(state.current.id)+'/handoff',{method:'POST',body:'{}'});render();await loadHistory();toast('PRD 整理包已生成。');}catch(error){toast('生成失败：'+error.message);}});
 bootstrap().catch(error=>{$('inputStatus').textContent='启动失败：'+error.message;});

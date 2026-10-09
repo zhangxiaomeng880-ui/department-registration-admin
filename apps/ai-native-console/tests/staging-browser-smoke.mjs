@@ -12,7 +12,7 @@ try{
    assert.equal(await page.locator('#workspace').isVisible(),false);
    assert.equal(await page.getByRole('button',{name:'进入工作台'}).isVisible(),true);
    const modes=await page.locator('#loginMode option').allTextContents();
-   assert.deepEqual(modes,['个人受限凭据（推荐）','预发共享验证（只读）']);
+   assert.deepEqual(modes,['个人受限凭据（推荐）','预发共享验证（只读）','凭证管理员（仅预发）']);
    assert.equal(await page.locator('#loginMode').inputValue(),'scoped');
    const check=await page.request.get(url+'/api/runtime/workspaces');
    assert.equal(check.status(),401);
@@ -22,6 +22,10 @@ try{
    assert.equal(data.writesEnabled,false);
    assert.equal(data.sharedLoginEnabled,true);
    assert.equal(data.mode,null);
+   await page.waitForFunction(enabled=>document.querySelector('#loginMode option[value="credential-admin"]').hidden===!enabled,data.credentialAdminLoginEnabled);
+   assert.equal(await page.locator('#loginMode option[value="credential-admin"]').evaluate(option=>option.hidden),!data.credentialAdminLoginEnabled);
+   const adminAttempt=await page.request.get(url+'/api/runtime/api-credentials');
+   assert.equal(adminAttempt.status(),401);
    // Invalid input cannot create a browser session; do not use real secrets.
    if(viewport.width>500){
     await page.locator('#password').fill('invalid-test-credential');
