@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>需求补全 Agent · AI Native 2.0</title>
+  <link rel="stylesheet" href="/requirements.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/projects"><span class="mark">A·N</span><span><b>AI Native 2.0</b><small>统一项目工作台</small></span></a>
+    <nav><a href="/projects">项目总览</a><a class="active" href="/requirements">需求补全</a><a href="/capabilities">资源能力池</a><a href="/knowledge">知识库</a></nav>
+    <span id="sessionBadge" class="session">检查身份…</span>
+  </header>
+  <main>
+    <section class="hero">
+      <div><span class="eyebrow">REQUIREMENT COMPLETION AGENT</span><h1>一句话，补全为可执行需求</h1><p>自动读取项目上下文，按页面、模块、指标、功能四级展开；只把真正影响范围、成本或合规的事项集中交给你决策。</p></div>
+      <div class="capability"><b>CAP-REQ-COMPLETION-V1</b><span>Product Capability Agent</span><span>Staging · 独立审计前不可晋级生产</span></div>
+    </section>
+
+    <section class="layout">
+      <div class="workspace">
+        <section class="panel composer">
+          <div class="panel-head"><div><span class="step">01</span><h2>描述你想做什么</h2></div><span class="hint">最多 4,000 字</span></div>
+          <div class="grid two">
+            <label>所属工作空间<select id="workspaceSelect"></select></label>
+            <label>所属项目<select id="projectSelect"></select></label>
+          </div>
+          <label>应用形态<select id="applicationType"><option value="UNSPECIFIED">暂不限定</option><option value="WEBSITE">网站</option><option value="APP">APP</option><option value="MINI_PROGRAM">小程序</option><option value="MULTI_CHANNEL">网站 + APP + 小程序</option></select></label>
+          <label>一句话需求<textarea id="statement" maxlength="4000" placeholder="例如：做一个网站、APP 和小程序的用户访问、性能与异常分析平台，支持提醒，但暂不包含工单治理。"></textarea></label>
+          <div class="actions"><span id="inputStatus" class="status"></span><button id="execute" class="primary">运行需求补全 Agent</button></div>
+        </section>
+
+        <section id="resultPanel" class="panel result" hidden>
+          <div class="panel-head"><div><span class="step">02</span><h2>补全结果</h2></div><div id="resultStatus" class="pill"></div></div>
+          <div class="score-row"><div><span>完整度</span><b id="completionScore">—</b></div><div><span>待决策</span><b id="decisionCount">—</b></div><div><span>运行追踪</span><b id="runTrace">—</b></div></div>
+          <p id="summary" class="summary"></p>
+          <div class="yellow-tabs" role="tablist" aria-label="需求层级">
+            <button data-level="PAGE" class="active">页面级 <i>?</i></button><button data-level="MODULE">模块级 <i>?</i></button><button data-level="METRIC">指标级 <i>?</i></button><button data-level="FUNCTION">功能点 <i>?</i></button>
+          </div>
+          <div id="levelTip" class="level-tip"></div>
+          <div id="requirementsList" class="requirements-list"></div>
+          <section class="decision-block"><h3>需要你确认的事项</h3><p>系统已合并重复问题；推荐项只是默认候选，可由你覆盖。</p><form id="decisionForm"><div id="decisionList"></div><button id="submitDecisions" class="primary" type="submit">提交决策并继续</button></form></section>
+          <section class="handoff"><div><h3>交给 Product Agent</h3><p>所有必要决策完成后，生成带上下文指纹的 PRD 交接包；不会直接覆盖已有 PRD。</p></div><button id="handoff" class="outline" disabled>生成 PRD 交接包</button></section>
+        </section>
+      </div>
+
+      <aside class="panel history"><div class="panel-head"><div><span class="step">03</span><h2>补全历史</h2></div><button id="refreshHistory" class="icon" title="刷新">↻</button></div><p class="aside-note">按当前项目读取，刷新页面后仍保留。</p><div id="historyList"></div></aside>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/requirements.js"></script>
+</body>
+</html>
