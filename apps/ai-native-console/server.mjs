@@ -214,7 +214,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           }
           const raw=(await result.text()).slice(0,1048576);
           let payload;try{payload=JSON.parse(raw);}catch{payload={error:'RUNTIME_NON_JSON_RESPONSE'};}
-          if(result.status===401||result.status===403){
+          if(result.status===401){
             if(session.mode==='scoped'){
               const sid=cookies(req).ain_session;
               if(sid)sessions.delete(sid);
