@@ -256,3 +256,21 @@ test('file access is personal-scope only; exact binary route never leaks Runtime
   assert.ok(!JSON.stringify({response:download.headers,logins:calls.map(x=>x.url)}).includes('staging-secret'));
  }finally{await a.close();}
 });
+
+test('Runtime permission denial preserves scoped login and subsequent authorized reads',async()=>{
+ const a=await start(async u=>{
+  if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'operator',permissions:['workspace:read','project:read']}});
+  if(u.endsWith('/lifecycle'))return fakeResponse({error:'PERMISSION_DENIED'},403);
+  return fakeResponse({data:[{id:'w1'}]});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const denied=await fetch(a.url+'/api/runtime/projects/p1/lifecycle',{headers:{cookie}});
+  assert.equal(denied.status,403);
+  assert.equal((await denied.json()).error,'PERMISSION_DENIED');
+  assert.equal((await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json()).authenticated,true);
+  assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,200);
+ }finally{await a.close();}
+});

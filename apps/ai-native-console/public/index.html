@@ -11,7 +11,7 @@
   <div class="login-card"><div class="eyebrow">SECURE WORKSPACE</div><h1>连接你的真实项目</h1>
     <p>数据由 Runtime 提供。工作台不生成模拟项目，也不会把浏览器本地状态作为业务事实。</p>
     <form id="loginForm">
-      <label>访问方式<select id="loginMode" aria-label="访问方式"><option value="scoped">个人受限凭据（推荐）</option><option value="shared" hidden>预发共享验证（只读）</option></select></label>
+      <label>访问方式<select id="loginMode" aria-label="访问方式"><option value="scoped">个人受限凭据（推荐）</option><option value="shared" hidden>预发共享验证（只读）</option><option value="credential-admin" hidden>凭证管理员（仅预发）</option></select></label>
       <label><span id="loginSecretLabel">Runtime 受限凭据</span><input id="password" type="password" autocomplete="off" required></label>
       <p id="loginHint" class="muted">仅在本次登录向服务端提交凭据，浏览器不存储 Token。</p>
       <button class="primary full" type="submit">进入工作台 →</button>

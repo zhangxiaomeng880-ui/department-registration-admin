@@ -73,15 +73,15 @@ function showTab(tab,id){
  for(const name of ['overview','tasks','assets','data','stages','audit'])$(name).hidden=name!==tab;
 }
 function loginMode(){
- const shared=$('loginMode').value==='shared';
- text('loginSecretLabel',shared?'预发共享访问密码':'Runtime 受限凭据');
- text('loginHint',shared?'预发验证模式只有读取权限。':'凭据仅用于 HTTPS 登录，不存入浏览器，之后使用 HttpOnly 会话。');
+ const mode=$('loginMode').value,shared=mode==='shared',admin=mode==='credential-admin';
+ text('loginSecretLabel',admin?'凭证管理员密码':shared?'预发共享访问密码':'Runtime 受限凭据');
+ text('loginHint',admin?'仅开放成员与个人凭证签发/撤销，管理员会话 30 分钟失效。':shared?'预发验证模式只有读取权限。':'凭据仅用于 HTTPS 登录，不存入浏览器，之后使用 HttpOnly 会话。');
  $('password').value='';
 }
 $('loginMode').addEventListener('change',loginMode);
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();text('loginError','');
- const key=$('loginMode').value==='shared'?'password':'credential';
+ const mode=$('loginMode').value;const key=mode==='credential-admin'?'adminPassword':mode==='shared'?'password':'credential';
  try{await req('/auth/login',{method:'POST',body:JSON.stringify({[key]:$('password').value})});$('password').value='';await bootstrap();}
  catch(e){$('password').value='';text('loginError','登录失败：'+e.message);}
 });
@@ -91,12 +91,13 @@ $('logout').addEventListener('click',async()=>{
 });
 async function bootstrap(){
  const session=await req('/auth/session');
- const shared=$('loginMode').querySelector('option[value="shared"]');shared.hidden=!session.sharedLoginEnabled;
- if(!session.sharedLoginEnabled&&$('loginMode').value==='shared')$('loginMode').value='scoped';
+ const shared=$('loginMode').querySelector('option[value="shared"]'),admin=$('loginMode').querySelector('option[value="credential-admin"]');shared.hidden=!session.sharedLoginEnabled;admin.hidden=!session.credentialAdminLoginEnabled;
+ if((!session.sharedLoginEnabled&&$('loginMode').value==='shared')||(!session.credentialAdminLoginEnabled&&$('loginMode').value==='credential-admin'))$('loginMode').value='scoped';
  loginMode();
  if(!session.authenticated){
   $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;return;
  }
+ if(session.credentialAdmin){location.href='/credential-admin';return;}
  state.writesEnabled=!!session.writesEnabled;
  $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=false;
  $('newProject').disabled=!state.writesEnabled;
