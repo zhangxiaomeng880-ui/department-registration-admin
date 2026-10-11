@@ -395,7 +395,7 @@ async function loadDetail(route,project,serial){
     const source=locator.libraryFileId||locator.fileId||locator.artifactId||locator.library_file_id||locator.file_id||locator.artifact_id;
     const box=make('div','','event');
     box.append(make('strong','v'+v.versionNo+' · '+v.state));
-    box.append(make('span',source?'已登记源引用，待授权解析':'文件引用未登记','status'));
+    box.append(make('span',locator.provider==='S3_COMPATIBLE'&&locator.objectKey?'已登记受控文件，待校验授权':source?'已登记源引用，待授权解析':'文件引用未登记','status'));
     box.append(make('small','版本 ID · '+v.id,'mono'));
     if(locator.provider==='S3_COMPATIBLE'&&locator.objectKey){
       const status=make('span','尚未校验当前权限','muted');

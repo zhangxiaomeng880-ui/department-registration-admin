@@ -10,7 +10,9 @@ Process Agent
 
 负责需求理解、业务目标、问题定义、范围、规则、验收标准、产品决策及需求文档交付。
 
-Product Agent 是需求型 Task 的综合编排者。它调用 Competitor Analysis / Data Analysis 等 Capability Agent 以及注册的 Tool / MCP / User Skill / Model，但不复制这些能力的专业实现。
+Product Agent 是需求型 Task 的综合编排者。它内置 Requirement Completion 能力，并按需调用 Competitor Analysis / Data Analysis 等 Capability Agent 以及注册的 Tool / MCP / User Skill / Model，但不复制这些能力的专业实现。
+
+对于一句话需求、缺少细节的人工需求或需求变更，Product Agent 必须先执行需求主动补齐内置能力 完成主动补全和决策项收敛，再判断 Product Phase Readiness；不得等待用户逐项发现缺失内容。
 
 ## 3. Non-Responsibility
 
@@ -56,7 +58,7 @@ For the Product Phase entry point, Project initialization / user requirement may
 - 验收目标
 - 可执行性
 
-缺少关键输入 → `WAITING_FOR_INPUT`；需要用户选择 → `USER_DECISION_REQUIRED`。
+短输入或细节缺失不得直接进入 `WAITING_FOR_INPUT`：先执行需求主动补齐内置能力 读取现有上下文、执行四级拆分与十二维完整性扫描。只有基础意图仍无法识别时进入 `WAITING_FOR_INPUT`；存在无法可靠推导的重大产品取舍时进入 `USER_DECISION_REQUIRED`。
 
 Product Phase Readiness follows `PHASE_CONTRACT_V1.0.md`.
 
@@ -70,7 +72,9 @@ Product Phase Readiness follows `PHASE_CONTRACT_V1.0.md`.
 
 ## 9. Capability Detection
 
-判断 Competitor Analysis / Data Analysis / 其他已注册能力是否能实质增强需求。
+Requirement Completion 是 Product Agent 的标准内置能力：当输入为一句话、细节不完整或变更可能影响既有规则时必须调用。它由 Product Agent 在同一需求 Task 内执行，不注册独立 Agent。
+
+同时判断 Competitor Analysis / Data Analysis / 其他已注册能力是否能实质增强需求。
 
 如果存在有效 Artifact，优先提供关联 / 复用选择；如果没有有效结果但能力有价值，应提示用户选择：
 
@@ -159,6 +163,7 @@ PRD 至少整合：
 - 验收标准
 - KPI / 观察指标（适用时）
 - 风险
+- Requirement Completion Result 引用、未决决策及四级需求映射（适用时）
 
 PRD 不得成为运行日志或模型原始输出的堆积。重要结论必须保留来源引用。
 
@@ -204,6 +209,8 @@ Approved Product Phase Output 是 Design Phase 的正式主要输入。Supportin
 - 竞品 / 数据结果关联正确性
 - User Skill / MCP 使用是否符合授权与 Contract
 - 关键决策是否有 Decision Record
+- Requirement Completion Result 是否覆盖适用的页面级、模块级、指标级、功能点级需求
+- 是否主动检查数据来源、更新机制、状态、权限、异常、提醒和验收，而非等待用户逐项追问
 - PRD 完整性与可交接性
 - Phase Output 完整性
 - 是否存在未经验证的推断
@@ -254,3 +261,5 @@ Product Task、Capability Task、Step、Tool / MCP / Skill Run、Model Run 均�
 - `ai/rules/PHASE_CONTRACT_V1.0.md`
 - `ai/rules/EXECUTION_RECORD_CONTRACT_V1.0.md`
 - `ai/rules/CAPABILITY_REGISTRY_V1.0.md`
+- `ai/agents/product/REQUIREMENT_COMPLETION_CAPABILITY.md`
+- `ai/schemas/requirement-completion/requirement-completion-result.schema.json`

@@ -3,6 +3,7 @@ import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import {createSessionStore} from './session-store.mjs';
 
 const root=dirname(fileURLToPath(import.meta.url));
 const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/credential-admin.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/credential-admin.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8','/credential-admin.css':'text/css; charset=utf-8'};
@@ -44,7 +45,7 @@ const credentialAdminAllowed=(method,path)=>{
   return method==='POST'&&/^\/api\/runtime\/api-credentials\/[A-Za-z0-9-]{1,80}\/revoke$/.test(path);
 };
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
-  const sessions=new Map(),failed=new Map();
+  const sessions=createSessionStore(env),failed=new Map();
   if(!env.RUNTIME_API_BASE_URL||((env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'||env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true')&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
@@ -90,7 +91,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
     }finally{clearTimeout(timer);}
     return probeCache;
   };
-  const sess=req=>{const id=cookies(req).ain_session;const s=id&&sessions.get(id);if(!s||s.exp<Date.now()){if(id)sessions.delete(id);return null;}return s;};
+  const sess=req=>sessions.get(cookies(req).ain_session);
   return http.createServer(async(req,res)=>{
     try{
       const url=new URL(req.url,'http://internal.local'),path=url.pathname;
@@ -101,7 +102,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const probe=await runtimeProbe();return json(res,probe.status,probe.result);
       }
       if(req.method==='GET'&&path==='/auth/session'){
-        const s=sess(req);
+        const s=await sess(req);
         return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',credentialAdmin:!!s&&s.mode==='staging-credential-admin',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',credentialAdminLoginEnabled:env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true',environment:'STAGING'});
       }
       if(req.method==='POST'){
@@ -159,15 +160,15 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
         const ttl=mode==='staging-credential-admin'?1800:28800;
-        sessions.set(sid,{exp:Date.now()+ttl*1000,mode,credential,identityId,permissions});
+        await sessions.set(sid,{exp:Date.now()+ttl*1000,mode,credential,identityId,permissions});
         return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ttl}${secure}`});
       }
       if(req.method==='POST'&&path==='/auth/logout'){
-        const sid=cookies(req).ain_session;if(sid)sessions.delete(sid);
+        const sid=cookies(req).ain_session;if(sid)await sessions.delete(sid);
         return json(res,200,{authenticated:false},{'set-cookie':`ain_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`});
       }
       if(path.startsWith('/api/')){
-        const session=sess(req);
+        const session=await sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
         if(session.mode==='staging-credential-admin'){
           if(!credentialAdminAllowed(req.method,path))throw error('CREDENTIAL_ADMIN_ROUTE_NOT_ALLOWED',403);
@@ -217,7 +218,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           if(result.status===401){
             if(session.mode==='scoped'){
               const sid=cookies(req).ain_session;
-              if(sid)sessions.delete(sid);
+              if(sid)await sessions.delete(sid);
             }
           }
           return json(res,result.status,payload);

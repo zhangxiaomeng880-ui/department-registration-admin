@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-native://schemas/requirement-completion/requirement-completion-result.v1.json",
+  "title": "Requirement Completion Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "result_id",
+    "task_id",
+    "project_id",
+    "agent_version",
+    "status",
+    "intent",
+    "levels",
+    "dimensions",
+    "completed_items",
+    "decision_items",
+    "acceptance_criteria",
+    "evidence",
+    "quality",
+    "handoff"
+  ],
+  "properties": {
+    "result_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "project_id": {"type": "string", "minLength": 1},
+    "requirement_id": {"type": ["string", "null"]},
+    "agent_version": {"const": "1.0"},
+    "status": {
+      "enum": ["COMPLETED", "PARTIAL", "USER_DECISION_REQUIRED", "WAITING_FOR_INPUT", "BLOCKED", "FAILED"]
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statement", "goal", "actors", "scope"],
+      "properties": {
+        "statement": {"type": "string"},
+        "goal": {"type": "string"},
+        "actors": {"type": "array", "items": {"type": "string"}},
+        "scope": {"type": "array", "items": {"type": "string"}},
+        "exclusions": {"type": "array", "items": {"type": "string"}, "default": []}
+      }
+    },
+    "levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page", "module", "metric", "function_point"],
+      "properties": {
+        "page": {"type": "array", "items": {"$ref": "#/$defs/requirementItem"}},
+        "module": {"type": "array", "items": {"$ref": "#/$defs/requirementItem"}},
+        "metric": {"type": "array", "items": {"$ref": "#/$defs/requirementItem"}},
+        "function_point": {"type": "array", "items": {"$ref": "#/$defs/requirementItem"}}
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {"$ref": "#/$defs/dimensionResult"}
+    },
+    "completed_items": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/completionItem"}
+    },
+    "default_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/completionItem"},
+      "default": []
+    },
+    "decision_items": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/decisionItem"}
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["statement", "confidence", "source"],
+        "properties": {
+          "statement": {"type": "string"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "source": {"type": "string"}
+        }
+      },
+      "default": []
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "condition", "expected_result"],
+        "properties": {
+          "id": {"type": "string"},
+          "condition": {"type": "string"},
+          "expected_result": {"type": "string"},
+          "evidence_required": {"type": "string"}
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["requirement_item_id", "target_type", "target_ref"],
+        "properties": {
+          "requirement_item_id": {"type": "string"},
+          "target_type": {"enum": ["PRD", "PAGE", "MODULE", "METRIC", "FUNCTION_POINT", "API", "EVENT", "TEST"]},
+          "target_ref": {"type": "string"}
+        }
+      },
+      "default": []
+    },
+    "dependencies": {"type": "array", "items": {"type": "string"}, "default": []},
+    "change_impact": {"type": "array", "items": {"type": "string"}, "default": []},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "source_class", "reference"],
+        "properties": {
+          "evidence_id": {"type": "string"},
+          "source_class": {
+            "enum": ["USER_INPUT", "PROJECT_CONTEXT", "ACCEPTED_DECISION", "VALIDATED_ARTIFACT", "KNOWLEDGE", "PROJECT_RULE", "MODEL_INFERENCE"]
+          },
+          "reference": {"type": "string"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "required": ["gate", "coverage", "findings"],
+      "properties": {
+        "gate": {"enum": ["PASS", "PARTIAL", "BLOCKED", "FAIL"]},
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "findings": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "resume_point": {"type": ["object", "null"]},
+    "handoff": {
+      "type": "object",
+      "required": ["consumer", "readiness", "artifact_version"],
+      "properties": {
+        "consumer": {"const": "Product Agent"},
+        "readiness": {"enum": ["READY", "DECISION_REQUIRED", "BLOCKED"]},
+        "artifact_version": {"type": "string"},
+        "unresolved_decision_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "$defs": {
+    "requirementItem": {
+      "type": "object",
+      "required": ["id", "title", "description", "status"],
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "status": {"enum": ["COMPLETE", "DEFAULT_CANDIDATE", "DECISION_REQUIRED", "NOT_APPLICABLE"]}
+      }
+    },
+    "dimensionResult": {
+      "type": "object",
+      "required": ["dimension", "status", "findings"],
+      "properties": {
+        "dimension": {"type": "string"},
+        "status": {"enum": ["COMPLETE", "DECISION_READY", "NOT_APPLICABLE", "BLOCKED"]},
+        "findings": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": "string"}
+      }
+    },
+    "completionItem": {
+      "type": "object",
+      "required": ["id", "field", "value", "classification", "source_class"],
+      "properties": {
+        "id": {"type": "string"},
+        "field": {"type": "string"},
+        "value": {},
+        "classification": {"enum": ["AUTO_COMPLETE", "DEFAULT_CANDIDATE"]},
+        "source_class": {
+          "enum": ["USER_INPUT", "PROJECT_CONTEXT", "ACCEPTED_DECISION", "VALIDATED_ARTIFACT", "KNOWLEDGE", "PROJECT_RULE", "MODEL_INFERENCE"]
+        },
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "decisionItem": {
+      "type": "object",
+      "required": ["id", "question", "reason", "impact", "options", "recommended_option"],
+      "properties": {
+        "id": {"type": "string"},
+        "question": {"type": "string"},
+        "reason": {"type": "string"},
+        "impact": {"type": "string"},
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "description"],
+            "properties": {
+              "id": {"type": "string"},
+              "label": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        },
+        "recommended_option": {"type": "string"}
+      }
+    }
+  }
+}
