@@ -1,15 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import { createConsoleServer } from '../server.mjs';
 const env={CONSOLE_ADMIN_PASSWORD:'test-password',RUNTIME_API_TOKEN:'staging-secret',RUNTIME_API_BASE_URL:'https://runtime.example.test',CONSOLE_ALLOW_WRITES:'true',CONSOLE_ALLOW_SHARED_ADMIN_LOGIN:'true'};
 const scoped='rtk_123456789abc_'+ 'X'.repeat(43);
-const start=async(fetchImpl)=>{
- const server=createConsoleServer({env,fetchImpl});
+const start=async(fetchImpl,overrides={})=>{
+ const server=createConsoleServer({env:{...env,...overrides},fetchImpl});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
  return {server,url,close:()=>new Promise(r=>server.close(r))};
 };
 const fakeResponse=(body,status=200)=>({status,ok:status>=200&&status<300,text:async()=>JSON.stringify(body),json:async()=>body});
+test('deployment admin password remains a recovery credential after owner password changes',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'console-password-recovery-'));
+ const a=await start(async()=>fakeResponse({data:[]}),{CONSOLE_SESSION_DIR:directory,CONSOLE_SESSION_KEY:'ab'.repeat(32)});
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const changed=await fetch(a.url+'/auth/change-password',{method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},body:JSON.stringify({currentPassword:'test-password',newPassword:'a-new-owner-password'})});
+  assert.equal(changed.status,200);
+  const ownerLogin=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'a-new-owner-password'})});
+  assert.equal(ownerLogin.status,200);
+  const recoveryLogin=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(recoveryLogin.status,200);
+ }finally{await a.close();await rm(directory,{recursive:true,force:true});}
+});
 test('unauthorized browser cannot access Runtime proxy or arbitrary routes',async()=>{
  const a=await start(async()=>fakeResponse({data:[]}));
  try{
