@@ -73,20 +73,12 @@ function showTab(tab,id){
  for(const name of ['overview','tasks','assets','data','stages','audit'])$(name).hidden=name!==tab;
 }
 function loginMode(){
- const admin=$('loginMode').value==='credential-admin';
- text('loginSecretLabel',admin?'管理员密码':'个人访问凭证');
- text('loginHint',admin?'登录后仅可管理成员与个人凭证，会话 30 分钟后自动退出。':'登录成功后使用安全会话，刷新页面无需重新输入。');
- $('personalLogin').classList.toggle('active',!admin);$('personalLogin').setAttribute('aria-selected',String(!admin));
- $('adminLogin').classList.toggle('active',admin);$('adminLogin').setAttribute('aria-selected',String(admin));
- $('adminRecovery').hidden=!admin;
- document.querySelector('#loginForm button[type="submit"]').textContent=admin?'进入凭证管理 →':'进入工作台 →';
+ text('loginSecretLabel','个人账号密码');
  $('password').value='';
 }
-$('personalLogin').addEventListener('click',()=>{$('loginMode').value='scoped';text('loginError','');loginMode();});
-$('adminLogin').addEventListener('click',()=>{$('loginMode').value='credential-admin';text('loginError','');loginMode();});
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();text('loginError','');
- const mode=$('loginMode').value;const key=mode==='credential-admin'?'adminPassword':mode==='shared'?'password':'credential';
+ const key='password';
  try{await req('/auth/login',{method:'POST',body:JSON.stringify({[key]:$('password').value})});$('password').value='';await bootstrap();}
  catch(e){
   $('password').value='';
@@ -98,17 +90,23 @@ $('logout').addEventListener('click',async()=>{
  await req('/auth/logout',{method:'POST',body:'{}'});
  state.projects=[];state.workspaces=[];state.selected=null;await bootstrap();
 });
+$('accountSettings').addEventListener('click',()=>{$('accountForm').reset();text('accountError','');$('accountDialog').showModal();});
+$('closeAccount').addEventListener('click',()=>$('accountDialog').close());
+$('accountForm').addEventListener('submit',async event=>{event.preventDefault();text('accountError','');
+ if($('newPassword').value!==$('confirmPassword').value){text('accountError','两次输入的新密码不一致。');return;}
+ try{await req('/auth/change-password',{method:'POST',body:JSON.stringify({currentPassword:$('currentPassword').value,newPassword:$('newPassword').value})});$('accountDialog').close();warn('密码修改成功。');}
+ catch(e){text('accountError',e.message==='CURRENT_PASSWORD_INVALID'?'当前密码不正确。':e.message==='PASSWORD_POLICY_REQUIRED'?'新密码至少需要 12 个字符。':'密码修改失败，请稍后重试。');}
+});
 async function bootstrap(){
  const session=await req('/auth/session');
- $('adminLogin').hidden=!session.credentialAdminLoginEnabled;
- if(!session.credentialAdminLoginEnabled&&$('loginMode').value==='credential-admin')$('loginMode').value='scoped';
  loginMode();
  if(!session.authenticated){
-  $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;return;
+  $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;$('accountSettings').hidden=true;$('credentialSettings').hidden=true;return;
  }
  if(session.credentialAdmin){location.href='/credential-admin';return;}
  state.writesEnabled=!!session.writesEnabled;
  $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=false;
+ $('accountSettings').hidden=!session.owner;$('credentialSettings').hidden=!session.owner;
  $('newProject').disabled=!state.writesEnabled;
  $('newProject').title=state.writesEnabled?'在预发环境创建真实项目':'需要受限写入权限，当前预发写入关闭';
  await loadCatalogs();
