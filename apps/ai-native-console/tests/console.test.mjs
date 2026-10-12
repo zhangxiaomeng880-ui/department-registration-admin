@@ -50,7 +50,7 @@ test('per-user scoped credential delegates GET and write to Runtime, never uses 
   assert.equal((await fetch(a.url+'/api/runtime/credits',{headers:{cookie}})).status,403);
  }finally{await a.close();}
 });
-test('shared staging access remains read-only even when global writes are enabled',async()=>{
+test('personal owner access remains project-write restricted even when global writes are enabled',async()=>{
  const calls=[];
  const a=await start(async(u,o)=>{calls.push({u,auth:o.headers.authorization});return fakeResponse({data:[]});});
  try{
@@ -61,7 +61,8 @@ test('shared staging access remains read-only even when global writes are enable
   assert.equal(login.status,200);
   const cookie=login.headers.get('set-cookie').split(';')[0];
   const session=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
-  assert.equal(session.mode,'staging-shared-readonly');
+  assert.equal(session.mode,'owner');
+  assert.equal(session.owner,true);
   assert.equal(session.writesEnabled,false);
   assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,200);
   assert.equal((await fetch(a.url+'/api/runtime/projects',{
