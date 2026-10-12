@@ -19,7 +19,9 @@ Testing、Compliance、Audit 三者职责独立，不得互相替代，也不得
 
 **User Intent → Context Resolution → Agent / Stage Routing → Required Input Check → Action → Verification / Gate → Next Action → User**
 
-Agent 只有在真正需要用户决策、缺失 Required Input、存在高风险操作或存在无法可靠判断的业务歧义时主动提问；已有上下文足够时直接执行，不重复确认。
+需求型 Task 在 Required Input Check 前必须执行需求主动补全：一句话或不完整输入先由 Product Agent 执行内置补齐步骤， 读取现有上下文，拆分页面/模块/指标/功能点，遍历数据源、更新、口径、状态、权限、异常、提醒、范围和验收；可可靠推导项直接补齐，合理默认值标记为候选，仅把重大取舍集中交给用户决策。不得等待用户逐项追问。
+
+Agent 只有在真正需要用户决策、基础意图无法识别、存在高风险操作或存在无法可靠判断的业务歧义时主动提问；已有上下文足够时直接执行，不重复确认。
 
 ## Token Efficiency
 
@@ -42,6 +44,7 @@ Token 优化不得省略：用户明确决策、业务规则、安全/权限/数
 
 - 先读取相关产品规则、架构和现有实现。
 - 明确目标、范围、约束和验收标准。
+- 对需求型 Task 先执行需求主动补齐内置能力；细节缺失本身不等于立即向用户提问。
 - 如果存在关键业务歧义，应先提出问题，不凭空决定。
 - **先读取 Project Context、上一阶段已确认输出和适用 Knowledge，再判断是否真的缺少输入。**
 - **不得重复索取已经确认且仍有效的项目基础信息。**

@@ -1,15 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import { createConsoleServer } from '../server.mjs';
 const env={CONSOLE_ADMIN_PASSWORD:'test-password',RUNTIME_API_TOKEN:'staging-secret',RUNTIME_API_BASE_URL:'https://runtime.example.test',CONSOLE_ALLOW_WRITES:'true',CONSOLE_ALLOW_SHARED_ADMIN_LOGIN:'true'};
 const scoped='rtk_123456789abc_'+ 'X'.repeat(43);
-const start=async(fetchImpl)=>{
- const server=createConsoleServer({env,fetchImpl});
+const start=async(fetchImpl,overrides={})=>{
+ const server=createConsoleServer({env:{...env,...overrides},fetchImpl});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
  return {server,url,close:()=>new Promise(r=>server.close(r))};
 };
 const fakeResponse=(body,status=200)=>({status,ok:status>=200&&status<300,text:async()=>JSON.stringify(body),json:async()=>body});
+test('deployment admin password remains a recovery credential after owner password changes',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'console-password-recovery-'));
+ const a=await start(async()=>fakeResponse({data:[]}),{CONSOLE_SESSION_DIR:directory,CONSOLE_SESSION_KEY:'ab'.repeat(32)});
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const changed=await fetch(a.url+'/auth/change-password',{method:'POST',headers:{origin:a.url,cookie,'content-type':'application/json'},body:JSON.stringify({currentPassword:'test-password',newPassword:'a-new-owner-password'})});
+  assert.equal(changed.status,200);
+  const ownerLogin=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'a-new-owner-password'})});
+  assert.equal(ownerLogin.status,200);
+  const recoveryLogin=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(recoveryLogin.status,200);
+ }finally{await a.close();await rm(directory,{recursive:true,force:true});}
+});
 test('unauthorized browser cannot access Runtime proxy or arbitrary routes',async()=>{
  const a=await start(async()=>fakeResponse({data:[]}));
  try{
@@ -50,7 +68,7 @@ test('per-user scoped credential delegates GET and write to Runtime, never uses 
   assert.equal((await fetch(a.url+'/api/runtime/credits',{headers:{cookie}})).status,403);
  }finally{await a.close();}
 });
-test('shared staging access remains read-only even when global writes are enabled',async()=>{
+test('personal owner access remains project-write restricted even when global writes are enabled',async()=>{
  const calls=[];
  const a=await start(async(u,o)=>{calls.push({u,auth:o.headers.authorization});return fakeResponse({data:[]});});
  try{
@@ -61,7 +79,8 @@ test('shared staging access remains read-only even when global writes are enable
   assert.equal(login.status,200);
   const cookie=login.headers.get('set-cookie').split(';')[0];
   const session=await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json();
-  assert.equal(session.mode,'staging-shared-readonly');
+  assert.equal(session.mode,'owner');
+  assert.equal(session.owner,true);
   assert.equal(session.writesEnabled,false);
   assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,200);
   assert.equal((await fetch(a.url+'/api/runtime/projects',{
@@ -212,7 +231,7 @@ test('scoped login rejects credentials missing project:read even when Runtime wo
  }finally{await a.close();}
 });
 
-test('file access is personal-scope only; exact binary route never leaks Runtime credential or provider URL',async()=>{
+test('file access is limited to personal owner or scoped sessions; exact binary route never leaks credentials or provider URL',async()=>{
  const projectId='11111111-1111-4111-8111-111111111111';
  const assetId='22222222-2222-4222-8222-222222222222';
  const versionId='33333333-3333-4333-8333-333333333333';
@@ -235,12 +254,13 @@ test('file access is personal-scope only; exact binary route never leaks Runtime
   throw Error('Unexpected URL '+u);
  });
  try{
-  const shared=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
-  assert.equal(shared.status,200);
-  const sharedCookie=shared.headers.get('set-cookie').split(';')[0];
-  assert.equal((await fetch(a.url+path+'/access',{headers:{cookie:sharedCookie}})).status,403);
-  assert.equal((await fetch(a.url+path+'/content',{headers:{cookie:sharedCookie}})).status,403);
-  assert.equal(calls.length,0,'shared platform token cannot request private file routes');
+  const owner=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(owner.status,200);
+  const ownerCookie=owner.headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(a.url+path+'/access',{headers:{cookie:ownerCookie}})).status,200);
+  assert.equal((await fetch(a.url+path+'/content',{headers:{cookie:ownerCookie}})).status,200);
+  assert.ok(calls.every(x=>x.credential==='Bearer staging-secret'));
+  calls.length=0;
   const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
   assert.equal(login.status,200);
   const cookie=login.headers.get('set-cookie').split(';')[0];
@@ -254,5 +274,23 @@ test('file access is personal-scope only; exact binary route never leaks Runtime
   assert.deepEqual(new Uint8Array(await download.arrayBuffer()),file);
   assert.ok(calls.every(x=>x.credential==='Bearer '+scoped));
   assert.ok(!JSON.stringify({response:download.headers,logins:calls.map(x=>x.url)}).includes('staging-secret'));
+ }finally{await a.close();}
+});
+
+test('Runtime permission denial preserves scoped login and subsequent authorized reads',async()=>{
+ const a=await start(async u=>{
+  if(u.endsWith('/me'))return fakeResponse({data:{principalType:'SCOPED',platformAdmin:false,identityId:'operator',permissions:['workspace:read','project:read']}});
+  if(u.endsWith('/lifecycle'))return fakeResponse({error:'PERMISSION_DENIED'},403);
+  return fakeResponse({data:[{id:'w1'}]});
+ });
+ try{
+  const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
+  assert.equal(login.status,200);
+  const cookie=login.headers.get('set-cookie').split(';')[0];
+  const denied=await fetch(a.url+'/api/runtime/projects/p1/lifecycle',{headers:{cookie}});
+  assert.equal(denied.status,403);
+  assert.equal((await denied.json()).error,'PERMISSION_DENIED');
+  assert.equal((await(await fetch(a.url+'/auth/session',{headers:{cookie}})).json()).authenticated,true);
+  assert.equal((await fetch(a.url+'/api/runtime/workspaces',{headers:{cookie}})).status,200);
  }finally{await a.close();}
 });

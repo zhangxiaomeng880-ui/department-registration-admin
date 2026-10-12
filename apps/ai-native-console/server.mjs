@@ -1,12 +1,13 @@
 import http from 'node:http';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import {createSessionStore} from './session-store.mjs';
 
 const root=dirname(fileURLToPath(import.meta.url));
-const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8'};
-const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/app.js':'app.js','/requirements.js':'requirements.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css'};
+const MIME={'/':'text/html; charset=utf-8','/index.html':'text/html; charset=utf-8','/requirements.html':'text/html; charset=utf-8','/credential-admin.html':'text/html; charset=utf-8','/app.js':'text/javascript; charset=utf-8','/requirements.js':'text/javascript; charset=utf-8','/credential-admin.js':'text/javascript; charset=utf-8','/read-guards.mjs':'text/javascript; charset=utf-8','/style.css':'text/css; charset=utf-8','/requirements.css':'text/css; charset=utf-8','/credential-admin.css':'text/css; charset=utf-8'};
+const ASSETS={'/':'index.html','/index.html':'index.html','/requirements.html':'requirements.html','/credential-admin.html':'credential-admin.html','/app.js':'app.js','/requirements.js':'requirements.js','/credential-admin.js':'credential-admin.js','/read-guards.mjs':'read-guards.mjs','/style.css':'style.css','/requirements.css':'requirements.css','/credential-admin.css':'credential-admin.css'};
 
 const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
@@ -38,12 +39,34 @@ const allowed=(method,path)=>{
   if(method==='POST'&&/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/requirement-completions(?:\/[A-Za-z0-9-]{1,80}\/(decisions|handoff))?$/.test(path))return true;
   return false;
 };
+const credentialAdminAllowed=(method,path)=>{
+  if(method==='GET'&&['/api/runtime/workspaces','/api/runtime/identities','/api/runtime/rbac-roles','/api/runtime/workspace-memberships','/api/runtime/api-credentials'].includes(path))return true;
+  if(method==='POST'&&['/api/runtime/identities','/api/runtime/workspace-memberships','/api/runtime/api-credentials'].includes(path))return true;
+  return method==='POST'&&/^\/api\/runtime\/api-credentials\/[A-Za-z0-9-]{1,80}\/revoke$/.test(path);
+};
 export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
-  const sessions=new Map(),failed=new Map();
-  if(!env.RUNTIME_API_BASE_URL||(env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
+  const sessions=createSessionStore(env),failed=new Map();
+  if(!env.RUNTIME_API_BASE_URL||((env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'||env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true')&&(!env.CONSOLE_ADMIN_PASSWORD||!env.RUNTIME_API_TOKEN)))throw error('CONSOLE_CONFIGURATION_REQUIRED',503);
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
+  const accountFile=join(env.CONSOLE_SESSION_DIR||'/tmp','owner-password.json');
+  const ownerPassword=async value=>{
+    try{
+      const saved=JSON.parse(await readFile(accountFile,'utf8'));
+      const savedMatch=equals(saved.hash,createHash('sha256').update(saved.salt+value).digest('hex'));
+      const recoveryMatch=!!env.CONSOLE_ADMIN_PASSWORD&&equals(value,env.CONSOLE_ADMIN_PASSWORD);
+      return savedMatch||recoveryMatch;
+    }
+    catch(e){if(e.code!=='ENOENT')throw e;return !!env.CONSOLE_ADMIN_PASSWORD&&equals(value,env.CONSOLE_ADMIN_PASSWORD);}
+  };
+  const saveOwnerPassword=async value=>{
+    if(typeof value!=='string'||value.length<12||value.length>128)throw error('PASSWORD_POLICY_REQUIRED',400);
+    const salt=randomBytes(24).toString('hex'),hash=createHash('sha256').update(salt+value).digest('hex');
+    await mkdir(dirname(accountFile),{recursive:true,mode:0o700});
+    const temporary=accountFile+'.'+randomBytes(8).toString('hex')+'.tmp';
+    await writeFile(temporary,JSON.stringify({salt,hash}),{mode:0o600,flag:'wx'});await rename(temporary,accountFile);
+  };
   let probeCache=null;
   const runtimeProbe=async()=>{
     if(probeCache && Date.now()<probeCache.expires)return probeCache;
@@ -85,7 +108,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
     }finally{clearTimeout(timer);}
     return probeCache;
   };
-  const sess=req=>{const id=cookies(req).ain_session;const s=id&&sessions.get(id);if(!s||s.exp<Date.now()){if(id)sessions.delete(id);return null;}return s;};
+  const sess=req=>sessions.get(cookies(req).ain_session);
   return http.createServer(async(req,res)=>{
     try{
       const url=new URL(req.url,'http://internal.local'),path=url.pathname;
@@ -96,8 +119,8 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const probe=await runtimeProbe();return json(res,probe.status,probe.result);
       }
       if(req.method==='GET'&&path==='/auth/session'){
-        const s=sess(req);
-        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',environment:'STAGING'});
+        const s=await sess(req);
+        return json(res,200,{authenticated:!!s,mode:s?.mode||null,owner:!!s&&s.mode==='owner',writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',credentialAdmin:!!s&&s.mode==='staging-credential-admin',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',credentialAdminLoginEnabled:env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true',environment:'PRODUCTION'});
       }
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
@@ -139,30 +162,47 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
             permissions=self.permissions;
             mode='scoped';
           }finally{clearTimeout(timeout);}
-        }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&
-          env.CONSOLE_ADMIN_PASSWORD&&equals(body.password,env.CONSOLE_ADMIN_PASSWORD)){
+        }else if(typeof body.adminPassword==='string'&&env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true'&&
+          env.CONSOLE_ADMIN_PASSWORD&&equals(body.adminPassword,env.CONSOLE_ADMIN_PASSWORD)){
           credential=env.RUNTIME_API_TOKEN;
-          mode='staging-shared-readonly';
+          mode='staging-credential-admin';
+        }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&await ownerPassword(body.password)){
+          credential=env.RUNTIME_API_TOKEN;
+          mode='owner';
         }else{
           failed.set(ip,{count:strikes.count+1,until:Date.now()+900000});
           throw error('INVALID_CREDENTIALS',401);
         }
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
-        sessions.set(sid,{exp:Date.now()+8*3600*1000,mode,credential,identityId,permissions});
-        return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800${secure}`});
+        const ttl=mode==='staging-credential-admin'?1800:mode==='owner'?2592000:28800;
+        await sessions.set(sid,{exp:Date.now()+ttl*1000,mode,credential,identityId,permissions});
+        return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ttl}${secure}`});
       }
       if(req.method==='POST'&&path==='/auth/logout'){
-        const sid=cookies(req).ain_session;if(sid)sessions.delete(sid);
+        const sid=cookies(req).ain_session;if(sid)await sessions.delete(sid);
         return json(res,200,{authenticated:false},{'set-cookie':`ain_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`});
       }
+      if(req.method==='POST'&&path==='/auth/change-password'){
+        const session=await sess(req);if(!session||session.mode!=='owner')throw error('OWNER_SESSION_REQUIRED',403);
+        const body=await readJson(req);if(!await ownerPassword(body.currentPassword||''))throw error('CURRENT_PASSWORD_INVALID',401);
+        await saveOwnerPassword(body.newPassword);return json(res,200,{changed:true});
+      }
       if(path.startsWith('/api/')){
-        const session=sess(req);
+        const session=await sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
-        if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
-        if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&session.mode!=='scoped')
+        if(session.mode==='owner'){
+          if(!allowed(req.method,path)&&!credentialAdminAllowed(req.method,path))throw error('OWNER_ROUTE_NOT_ALLOWED',403);
+        }else if(session.mode==='staging-credential-admin'){
+          if(!credentialAdminAllowed(req.method,path))throw error('CREDENTIAL_ADMIN_ROUTE_NOT_ALLOWED',403);
+        }else if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
+        if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&!['scoped','owner'].includes(session.mode))
           throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
-        if(req.method!=='GET'&&!(env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write')))throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
+        if(req.method!=='GET'){
+          const scopedWrite=env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write');
+          const credentialAdminWrite=['staging-credential-admin','owner'].includes(session.mode)&&credentialAdminAllowed(req.method,path);
+          if(!scopedWrite&&!credentialAdminWrite)throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
+        }
         const body=req.method==='POST'?await readJson(req):null;
         if(req.method==='POST'&&path==='/api/runtime/projects'&&(!body.workspaceId||!body.projectKey||!body.name||!['AIGC_CONTENT','PRODUCT_DEVELOPMENT'].includes(body.projectType)))throw error('INVALID_PROJECT_INPUT');
         const controller=new AbortController();
@@ -198,14 +238,18 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           }
           const raw=(await result.text()).slice(0,1048576);
           let payload;try{payload=JSON.parse(raw);}catch{payload={error:'RUNTIME_NON_JSON_RESPONSE'};}
-          if(result.status===401||result.status===403){
+          if(result.status===401){
             if(session.mode==='scoped'){
               const sid=cookies(req).ain_session;
-              if(sid)sessions.delete(sid);
+              if(sid)await sessions.delete(sid);
             }
           }
           return json(res,result.status,payload);
         }finally{clearTimeout(timeout);}
+      }
+      if(req.method==='GET'&&path==='/credential-admin'){
+        const bytes=await readFile(join(root,'public','credential-admin.html'));
+        res.writeHead(200,{...headers,'content-type':MIME['/credential-admin.html']});return res.end(bytes);
       }
       if(req.method==='GET'&&path==='/requirements'){
         const bytes=await readFile(join(root,'public','requirements.html'));

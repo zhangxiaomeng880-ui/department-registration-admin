@@ -73,32 +73,40 @@ function showTab(tab,id){
  for(const name of ['overview','tasks','assets','data','stages','audit'])$(name).hidden=name!==tab;
 }
 function loginMode(){
- const shared=$('loginMode').value==='shared';
- text('loginSecretLabel',shared?'预发共享访问密码':'Runtime 受限凭据');
- text('loginHint',shared?'预发验证模式只有读取权限。':'凭据仅用于 HTTPS 登录，不存入浏览器，之后使用 HttpOnly 会话。');
+ text('loginSecretLabel','个人账号密码');
  $('password').value='';
 }
-$('loginMode').addEventListener('change',loginMode);
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();text('loginError','');
- const key=$('loginMode').value==='shared'?'password':'credential';
+ const key='password';
  try{await req('/auth/login',{method:'POST',body:JSON.stringify({[key]:$('password').value})});$('password').value='';await bootstrap();}
- catch(e){$('password').value='';text('loginError','登录失败：'+e.message);}
+ catch(e){
+  $('password').value='';
+  const message=e.message==='INVALID_CREDENTIALS'?'凭证或密码不正确，请重新输入。':e.message==='TOO_MANY_ATTEMPTS'?'尝试次数过多，请稍后再试。':'暂时无法登录，请稍后重试。';
+  text('loginError',message);
+ }
 });
 $('logout').addEventListener('click',async()=>{
  await req('/auth/logout',{method:'POST',body:'{}'});
  state.projects=[];state.workspaces=[];state.selected=null;await bootstrap();
 });
+$('accountSettings').addEventListener('click',()=>{$('accountForm').reset();text('accountError','');$('accountDialog').showModal();});
+$('closeAccount').addEventListener('click',()=>$('accountDialog').close());
+$('accountForm').addEventListener('submit',async event=>{event.preventDefault();text('accountError','');
+ if($('newPassword').value!==$('confirmPassword').value){text('accountError','两次输入的新密码不一致。');return;}
+ try{await req('/auth/change-password',{method:'POST',body:JSON.stringify({currentPassword:$('currentPassword').value,newPassword:$('newPassword').value})});$('accountDialog').close();warn('密码修改成功。');}
+ catch(e){text('accountError',e.message==='CURRENT_PASSWORD_INVALID'?'当前密码不正确。':e.message==='PASSWORD_POLICY_REQUIRED'?'新密码至少需要 12 个字符。':'密码修改失败，请稍后重试。');}
+});
 async function bootstrap(){
  const session=await req('/auth/session');
- const shared=$('loginMode').querySelector('option[value="shared"]');shared.hidden=!session.sharedLoginEnabled;
- if(!session.sharedLoginEnabled&&$('loginMode').value==='shared')$('loginMode').value='scoped';
  loginMode();
  if(!session.authenticated){
-  $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;return;
+  $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;$('accountSettings').hidden=true;$('credentialSettings').hidden=true;return;
  }
+ if(session.credentialAdmin){location.href='/credential-admin';return;}
  state.writesEnabled=!!session.writesEnabled;
  $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=false;
+ $('accountSettings').hidden=!session.owner;$('credentialSettings').hidden=!session.owner;
  $('newProject').disabled=!state.writesEnabled;
  $('newProject').title=state.writesEnabled?'在预发环境创建真实项目':'需要受限写入权限，当前预发写入关闭';
  await loadCatalogs();
@@ -291,6 +299,7 @@ async function loadAssetModule(id,name='aigc-asset-system'){
    row.append(make('strong',asset.displayName||asset.assetKey||asset.id));
    row.append(make('span',(asset.assetType||'—')+' · '+(asset.status||'—'),'status'));
    row.append(make('small','资产 ID · '+asset.id+' · '+versions.filter(x=>x.assetId===asset.id).length+' 个版本','mono'));
+   row.append(make('span','查看版本与下载 →','outline'));
   }
  }catch(e){if(current()){clear(root);root.append(make('p','真实资产接口不可用：'+e.message,'muted'));}}
 }
@@ -394,11 +403,11 @@ async function loadDetail(route,project,serial){
     const source=locator.libraryFileId||locator.fileId||locator.artifactId||locator.library_file_id||locator.file_id||locator.artifact_id;
     const box=make('div','','event');
     box.append(make('strong','v'+v.versionNo+' · '+v.state));
-    box.append(make('span',source?'已登记源引用，待授权解析':'文件引用未登记','status'));
+    box.append(make('span',locator.provider==='S3_COMPATIBLE'&&locator.objectKey?'已登记受控文件，待校验授权':source?'已登记源引用，待授权解析':'文件引用未登记','status'));
     box.append(make('small','版本 ID · '+v.id,'mono'));
     if(locator.provider==='S3_COMPATIBLE'&&locator.objectKey){
       const status=make('span','尚未校验当前权限','muted');
-      const verify=make('button','验证文件授权','outline');
+      const verify=make('button','验证并获取下载入口','outline');
       verify.addEventListener('click',async()=>{
         status.textContent='正在验证 Runtime 文件权限…';
         verify.disabled=true;

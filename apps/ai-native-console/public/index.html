@@ -5,19 +5,26 @@
 <body>
 <header class="top">
   <a class="brand" href="/projects" data-nav><span class="brandmark">A<span>·</span>N</span><span><strong>AI Native <em>2.0</em></strong><small>统一项目工作台</small></span></a>
-  <div class="head-right"><span class="pill">STAGING · FRONTEND GATE 未通过</span><button id="logout" class="ghost" hidden>退出</button></div>
+  <div class="head-right"><span class="pill">PRODUCTION · PERSONAL</span><a id="credentialSettings" class="ghost" href="/credential-admin" hidden>凭证管理</a><button id="accountSettings" class="ghost" hidden>账户设置</button><button id="logout" class="ghost" hidden>退出</button></div>
 </header>
 <section id="login" class="login">
   <div class="login-card"><div class="eyebrow">SECURE WORKSPACE</div><h1>连接你的真实项目</h1>
-    <p>数据由 Runtime 提供。工作台不生成模拟项目，也不会把浏览器本地状态作为业务事实。</p>
+    <p>使用个人账号密码进入工作台，登录状态将在此设备安全保持。</p>
     <form id="loginForm">
-      <label>访问方式<select id="loginMode" aria-label="访问方式"><option value="scoped">个人受限凭据（推荐）</option><option value="shared" hidden>预发共享验证（只读）</option></select></label>
-      <label><span id="loginSecretLabel">Runtime 受限凭据</span><input id="password" type="password" autocomplete="off" required></label>
-      <p id="loginHint" class="muted">仅在本次登录向服务端提交凭据，浏览器不存储 Token。</p>
+      <input id="loginMode" type="hidden" value="owner">
+      <label><span id="loginSecretLabel">个人账号密码</span><input id="password" type="password" autocomplete="current-password" required></label>
+      <p id="loginHint" class="muted">登录后可在账户设置中修改密码，无需进入部署平台。</p>
       <button class="primary full" type="submit">进入工作台 →</button>
     </form><p id="loginError" class="error" role="alert"></p>
   </div>
 </section>
+<dialog id="accountDialog"><form id="accountForm">
+  <div class="dlghead"><h2>修改个人账号密码</h2><button id="closeAccount" class="ghost" type="button">✕</button></div>
+  <label>当前密码<input id="currentPassword" type="password" autocomplete="current-password" required></label>
+  <label>新密码<input id="newPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+  <label>确认新密码<input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+  <p id="accountError" class="error" role="alert"></p><button class="primary full" type="submit">确认修改</button>
+</form></dialog>
 <div id="workspace" class="shell" hidden>
   <aside class="side">
     <div class="side-label">工作空间</div><select id="workspaceSelect" aria-label="选择工作空间"></select>
