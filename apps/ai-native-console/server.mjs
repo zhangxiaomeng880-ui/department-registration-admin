@@ -196,7 +196,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         }else if(session.mode==='staging-credential-admin'){
           if(!credentialAdminAllowed(req.method,path))throw error('CREDENTIAL_ADMIN_ROUTE_NOT_ALLOWED',403);
         }else if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
-        if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&session.mode!=='scoped')
+        if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&!['scoped','owner'].includes(session.mode))
           throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
         if(req.method!=='GET'){
           const scopedWrite=env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write');

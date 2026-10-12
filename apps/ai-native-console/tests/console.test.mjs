@@ -231,7 +231,7 @@ test('scoped login rejects credentials missing project:read even when Runtime wo
  }finally{await a.close();}
 });
 
-test('file access is personal-scope only; exact binary route never leaks Runtime credential or provider URL',async()=>{
+test('file access is limited to personal owner or scoped sessions; exact binary route never leaks credentials or provider URL',async()=>{
  const projectId='11111111-1111-4111-8111-111111111111';
  const assetId='22222222-2222-4222-8222-222222222222';
  const versionId='33333333-3333-4333-8333-333333333333';
@@ -254,12 +254,13 @@ test('file access is personal-scope only; exact binary route never leaks Runtime
   throw Error('Unexpected URL '+u);
  });
  try{
-  const shared=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
-  assert.equal(shared.status,200);
-  const sharedCookie=shared.headers.get('set-cookie').split(';')[0];
-  assert.equal((await fetch(a.url+path+'/access',{headers:{cookie:sharedCookie}})).status,403);
-  assert.equal((await fetch(a.url+path+'/content',{headers:{cookie:sharedCookie}})).status,403);
-  assert.equal(calls.length,0,'shared platform token cannot request private file routes');
+  const owner=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({password:'test-password'})});
+  assert.equal(owner.status,200);
+  const ownerCookie=owner.headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(a.url+path+'/access',{headers:{cookie:ownerCookie}})).status,200);
+  assert.equal((await fetch(a.url+path+'/content',{headers:{cookie:ownerCookie}})).status,200);
+  assert.ok(calls.every(x=>x.credential==='Bearer staging-secret'));
+  calls.length=0;
   const login=await fetch(a.url+'/auth/login',{method:'POST',headers:{origin:a.url,'content-type':'application/json'},body:JSON.stringify({credential:scoped})});
   assert.equal(login.status,200);
   const cookie=login.headers.get('set-cookie').split(';')[0];

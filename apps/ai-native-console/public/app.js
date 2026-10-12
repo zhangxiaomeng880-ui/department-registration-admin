@@ -299,6 +299,7 @@ async function loadAssetModule(id,name='aigc-asset-system'){
    row.append(make('strong',asset.displayName||asset.assetKey||asset.id));
    row.append(make('span',(asset.assetType||'—')+' · '+(asset.status||'—'),'status'));
    row.append(make('small','资产 ID · '+asset.id+' · '+versions.filter(x=>x.assetId===asset.id).length+' 个版本','mono'));
+   row.append(make('span','查看版本与下载 →','outline'));
   }
  }catch(e){if(current()){clear(root);root.append(make('p','真实资产接口不可用：'+e.message,'muted'));}}
 }
@@ -406,7 +407,7 @@ async function loadDetail(route,project,serial){
     box.append(make('small','版本 ID · '+v.id,'mono'));
     if(locator.provider==='S3_COMPATIBLE'&&locator.objectKey){
       const status=make('span','尚未校验当前权限','muted');
-      const verify=make('button','验证文件授权','outline');
+      const verify=make('button','验证并获取下载入口','outline');
       verify.addEventListener('click',async()=>{
         status.textContent='正在验证 Runtime 文件权限…';
         verify.disabled=true;
