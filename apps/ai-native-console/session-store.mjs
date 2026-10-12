@@ -14,7 +14,7 @@ export function createSessionStore(env){
  return {
   async set(id,session){
    if(!valid(id))throw new Error('INVALID_SESSION_ID');
-   if(!directory||session.mode!=='scoped'){memory.set(id,session);return;}
+   if(!directory||!['scoped','owner'].includes(session.mode)){memory.set(id,session);return;}
    await mkdir(directory,{recursive:true,mode:0o700});
    const iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',key,iv);
    cipher.setAAD(Buffer.from(id));
@@ -35,7 +35,7 @@ export function createSessionStore(env){
      const decipher=createDecipheriv('aes-256-gcm',key,bytes.subarray(0,12));
      decipher.setAAD(Buffer.from(id));decipher.setAuthTag(bytes.subarray(12,28));
      session=JSON.parse(Buffer.concat([decipher.update(bytes.subarray(28)),decipher.final()]).toString('utf8'));
-     if(session.mode!=='scoped'||!Array.isArray(session.permissions)||typeof session.credential!=='string')return null;
+     if(!['scoped','owner'].includes(session.mode)||!Array.isArray(session.permissions)||typeof session.credential!=='string')return null;
     }catch{return null;}
    }
    if(!session)return null;
