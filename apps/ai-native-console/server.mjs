@@ -52,7 +52,12 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
   const accountFile=join(env.CONSOLE_SESSION_DIR||'/tmp','owner-password.json');
   const ownerPassword=async value=>{
-    try{const saved=JSON.parse(await readFile(accountFile,'utf8'));return equals(saved.hash,createHash('sha256').update(saved.salt+value).digest('hex'));}
+    try{
+      const saved=JSON.parse(await readFile(accountFile,'utf8'));
+      const savedMatch=equals(saved.hash,createHash('sha256').update(saved.salt+value).digest('hex'));
+      const recoveryMatch=!!env.CONSOLE_ADMIN_PASSWORD&&equals(value,env.CONSOLE_ADMIN_PASSWORD);
+      return savedMatch||recoveryMatch;
+    }
     catch(e){if(e.code!=='ENOENT')throw e;return !!env.CONSOLE_ADMIN_PASSWORD&&equals(value,env.CONSOLE_ADMIN_PASSWORD);}
   };
   const saveOwnerPassword=async value=>{
