@@ -5,24 +5,26 @@
 <body>
 <header class="top">
   <a class="brand" href="/projects" data-nav><span class="brandmark">A<span>·</span>N</span><span><strong>AI Native <em>2.0</em></strong><small>统一项目工作台</small></span></a>
-  <div class="head-right"><span class="pill">PRODUCTION · PERSONAL</span><button id="logout" class="ghost" hidden>退出</button></div>
+  <div class="head-right"><span class="pill">PRODUCTION · PERSONAL</span><a id="credentialSettings" class="ghost" href="/credential-admin" hidden>凭证管理</a><button id="accountSettings" class="ghost" hidden>账户设置</button><button id="logout" class="ghost" hidden>退出</button></div>
 </header>
 <section id="login" class="login">
   <div class="login-card"><div class="eyebrow">SECURE WORKSPACE</div><h1>连接你的真实项目</h1>
-    <p>使用个人凭证进入工作台。凭证只在登录时提交，浏览器不会保存。</p>
-    <div class="login-switch" role="tablist" aria-label="登录入口">
-      <button id="personalLogin" class="login-tab active" type="button" role="tab" aria-selected="true">进入个人工作台</button>
-      <button id="adminLogin" class="login-tab" type="button" role="tab" aria-selected="false" hidden>管理个人凭证</button>
-    </div>
+    <p>使用个人账号密码进入工作台，登录状态将在此设备安全保持。</p>
     <form id="loginForm">
-      <input id="loginMode" type="hidden" value="scoped">
-      <label><span id="loginSecretLabel">个人访问凭证</span><input id="password" type="password" autocomplete="off" required></label>
-      <p id="loginHint" class="muted">登录成功后使用安全会话，刷新页面无需重新输入。</p>
+      <input id="loginMode" type="hidden" value="owner">
+      <label><span id="loginSecretLabel">个人账号密码</span><input id="password" type="password" autocomplete="current-password" required></label>
+      <p id="loginHint" class="muted">登录后可在账户设置中修改密码，无需进入部署平台。</p>
       <button class="primary full" type="submit">进入工作台 →</button>
     </form><p id="loginError" class="error" role="alert"></p>
-    <p id="adminRecovery" class="login-help" hidden>管理员密码用于签发或撤销个人凭证，不是日常登录密码。忘记密码时需由部署管理员重置。</p>
   </div>
 </section>
+<dialog id="accountDialog"><form id="accountForm">
+  <div class="dlghead"><h2>修改个人账号密码</h2><button id="closeAccount" class="ghost" type="button">✕</button></div>
+  <label>当前密码<input id="currentPassword" type="password" autocomplete="current-password" required></label>
+  <label>新密码<input id="newPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+  <label>确认新密码<input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+  <p id="accountError" class="error" role="alert"></p><button class="primary full" type="submit">确认修改</button>
+</form></dialog>
 <div id="workspace" class="shell" hidden>
   <aside class="side">
     <div class="side-label">工作空间</div><select id="workspaceSelect" aria-label="选择工作空间"></select>
