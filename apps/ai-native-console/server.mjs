@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {createSessionStore} from './session-store.mjs';
@@ -50,6 +50,18 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
   if(!/^https:\/\//.test(env.RUNTIME_API_BASE_URL)&&!(env.CONSOLE_ALLOW_HTTP_LOCAL==='true'&&/^http:\/\/localhost(:\d+)?$/.test(env.RUNTIME_API_BASE_URL)))throw error('INVALID_RUNTIME_BASE_URL',503);
   const base=env.RUNTIME_API_BASE_URL.replace(/\/$/,'');
   const secure=env.NODE_ENV==='production' ? '; Secure' : '';
+  const accountFile=join(env.CONSOLE_SESSION_DIR||'/tmp','owner-password.json');
+  const ownerPassword=async value=>{
+    try{const saved=JSON.parse(await readFile(accountFile,'utf8'));return equals(saved.hash,createHash('sha256').update(saved.salt+value).digest('hex'));}
+    catch(e){if(e.code!=='ENOENT')throw e;return !!env.CONSOLE_ADMIN_PASSWORD&&equals(value,env.CONSOLE_ADMIN_PASSWORD);}
+  };
+  const saveOwnerPassword=async value=>{
+    if(typeof value!=='string'||value.length<12||value.length>128)throw error('PASSWORD_POLICY_REQUIRED',400);
+    const salt=randomBytes(24).toString('hex'),hash=createHash('sha256').update(salt+value).digest('hex');
+    await mkdir(dirname(accountFile),{recursive:true,mode:0o700});
+    const temporary=accountFile+'.'+randomBytes(8).toString('hex')+'.tmp';
+    await writeFile(temporary,JSON.stringify({salt,hash}),{mode:0o600,flag:'wx'});await rename(temporary,accountFile);
+  };
   let probeCache=null;
   const runtimeProbe=async()=>{
     if(probeCache && Date.now()<probeCache.expires)return probeCache;
@@ -103,7 +115,7 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       }
       if(req.method==='GET'&&path==='/auth/session'){
         const s=await sess(req);
-        return json(res,200,{authenticated:!!s,mode:s?.mode||null,writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',credentialAdmin:!!s&&s.mode==='staging-credential-admin',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',credentialAdminLoginEnabled:env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true',environment:'STAGING'});
+        return json(res,200,{authenticated:!!s,mode:s?.mode||null,owner:!!s&&s.mode==='owner',writesEnabled:!!s&&s.mode==='scoped'&&s.permissions.includes('project:write')&&env.CONSOLE_ALLOW_WRITES==='true',credentialAdmin:!!s&&s.mode==='staging-credential-admin',sharedLoginEnabled:env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true',credentialAdminLoginEnabled:env.CONSOLE_ALLOW_CREDENTIAL_ADMIN_LOGIN==='true',environment:'PRODUCTION'});
       }
       if(req.method==='POST'){
         if(!sameOrigin(req))throw error('ORIGIN_MISMATCH',403);
@@ -149,17 +161,16 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
           env.CONSOLE_ADMIN_PASSWORD&&equals(body.adminPassword,env.CONSOLE_ADMIN_PASSWORD)){
           credential=env.RUNTIME_API_TOKEN;
           mode='staging-credential-admin';
-        }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&
-          env.CONSOLE_ADMIN_PASSWORD&&equals(body.password,env.CONSOLE_ADMIN_PASSWORD)){
+        }else if(typeof body.password==='string'&&env.CONSOLE_ALLOW_SHARED_ADMIN_LOGIN==='true'&&await ownerPassword(body.password)){
           credential=env.RUNTIME_API_TOKEN;
-          mode='staging-shared-readonly';
+          mode='owner';
         }else{
           failed.set(ip,{count:strikes.count+1,until:Date.now()+900000});
           throw error('INVALID_CREDENTIALS',401);
         }
         failed.delete(ip);
         const sid=randomBytes(32).toString('hex');
-        const ttl=mode==='staging-credential-admin'?1800:28800;
+        const ttl=mode==='staging-credential-admin'?1800:mode==='owner'?2592000:28800;
         await sessions.set(sid,{exp:Date.now()+ttl*1000,mode,credential,identityId,permissions});
         return json(res,200,{authenticated:true,mode},{'set-cookie':`ain_session=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ttl}${secure}`});
       }
@@ -167,17 +178,24 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
         const sid=cookies(req).ain_session;if(sid)await sessions.delete(sid);
         return json(res,200,{authenticated:false},{'set-cookie':`ain_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`});
       }
+      if(req.method==='POST'&&path==='/auth/change-password'){
+        const session=await sess(req);if(!session||session.mode!=='owner')throw error('OWNER_SESSION_REQUIRED',403);
+        const body=await readJson(req);if(!await ownerPassword(body.currentPassword||''))throw error('CURRENT_PASSWORD_INVALID',401);
+        await saveOwnerPassword(body.newPassword);return json(res,200,{changed:true});
+      }
       if(path.startsWith('/api/')){
         const session=await sess(req);
         if(!session)throw error('CONSOLE_UNAUTHORIZED',401);
-        if(session.mode==='staging-credential-admin'){
+        if(session.mode==='owner'){
+          if(!allowed(req.method,path)&&!credentialAdminAllowed(req.method,path))throw error('OWNER_ROUTE_NOT_ALLOWED',403);
+        }else if(session.mode==='staging-credential-admin'){
           if(!credentialAdminAllowed(req.method,path))throw error('CREDENTIAL_ADMIN_ROUTE_NOT_ALLOWED',403);
         }else if(!allowed(req.method,path))throw error('API_ROUTE_NOT_ALLOWED',403);
         if(/^\/api\/runtime\/projects\/[A-Za-z0-9-]{1,64}\/assets\/[A-Za-z0-9-]{1,64}\/versions\/[A-Za-z0-9-]{1,64}\/(access|content)$/.test(path)&&session.mode!=='scoped')
           throw error('PERSONAL_SCOPED_FILE_ACCESS_REQUIRED',403);
         if(req.method!=='GET'){
           const scopedWrite=env.CONSOLE_ALLOW_WRITES==='true'&&session.mode==='scoped'&&session.permissions.includes('project:write');
-          const credentialAdminWrite=session.mode==='staging-credential-admin'&&credentialAdminAllowed(req.method,path);
+          const credentialAdminWrite=['staging-credential-admin','owner'].includes(session.mode)&&credentialAdminAllowed(req.method,path);
           if(!scopedWrite&&!credentialAdminWrite)throw error('SCOPED_STAGING_WRITE_REQUIRED',403);
         }
         const body=req.method==='POST'?await readJson(req):null;
