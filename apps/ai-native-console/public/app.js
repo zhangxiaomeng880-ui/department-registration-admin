@@ -73,17 +73,26 @@ function showTab(tab,id){
  for(const name of ['overview','tasks','assets','data','stages','audit'])$(name).hidden=name!==tab;
 }
 function loginMode(){
- const mode=$('loginMode').value,shared=mode==='shared',admin=mode==='credential-admin';
- text('loginSecretLabel',admin?'凭证管理员密码':shared?'预发共享访问密码':'Runtime 受限凭据');
- text('loginHint',admin?'仅开放成员与个人凭证签发/撤销，管理员会话 30 分钟失效。':shared?'预发验证模式只有读取权限。':'凭据仅用于 HTTPS 登录，不存入浏览器，之后使用 HttpOnly 会话。');
+ const admin=$('loginMode').value==='credential-admin';
+ text('loginSecretLabel',admin?'管理员密码':'个人访问凭证');
+ text('loginHint',admin?'登录后仅可管理成员与个人凭证，会话 30 分钟后自动退出。':'登录成功后使用安全会话，刷新页面无需重新输入。');
+ $('personalLogin').classList.toggle('active',!admin);$('personalLogin').setAttribute('aria-selected',String(!admin));
+ $('adminLogin').classList.toggle('active',admin);$('adminLogin').setAttribute('aria-selected',String(admin));
+ $('adminRecovery').hidden=!admin;
+ document.querySelector('#loginForm button[type="submit"]').textContent=admin?'进入凭证管理 →':'进入工作台 →';
  $('password').value='';
 }
-$('loginMode').addEventListener('change',loginMode);
+$('personalLogin').addEventListener('click',()=>{$('loginMode').value='scoped';text('loginError','');loginMode();});
+$('adminLogin').addEventListener('click',()=>{$('loginMode').value='credential-admin';text('loginError','');loginMode();});
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();text('loginError','');
  const mode=$('loginMode').value;const key=mode==='credential-admin'?'adminPassword':mode==='shared'?'password':'credential';
  try{await req('/auth/login',{method:'POST',body:JSON.stringify({[key]:$('password').value})});$('password').value='';await bootstrap();}
- catch(e){$('password').value='';text('loginError','登录失败：'+e.message);}
+ catch(e){
+  $('password').value='';
+  const message=e.message==='INVALID_CREDENTIALS'?'凭证或密码不正确，请重新输入。':e.message==='TOO_MANY_ATTEMPTS'?'尝试次数过多，请稍后再试。':'暂时无法登录，请稍后重试。';
+  text('loginError',message);
+ }
 });
 $('logout').addEventListener('click',async()=>{
  await req('/auth/logout',{method:'POST',body:'{}'});
@@ -91,8 +100,8 @@ $('logout').addEventListener('click',async()=>{
 });
 async function bootstrap(){
  const session=await req('/auth/session');
- const shared=$('loginMode').querySelector('option[value="shared"]'),admin=$('loginMode').querySelector('option[value="credential-admin"]');shared.hidden=!session.sharedLoginEnabled;admin.hidden=!session.credentialAdminLoginEnabled;
- if((!session.sharedLoginEnabled&&$('loginMode').value==='shared')||(!session.credentialAdminLoginEnabled&&$('loginMode').value==='credential-admin'))$('loginMode').value='scoped';
+ $('adminLogin').hidden=!session.credentialAdminLoginEnabled;
+ if(!session.credentialAdminLoginEnabled&&$('loginMode').value==='credential-admin')$('loginMode').value='scoped';
  loginMode();
  if(!session.authenticated){
   $('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;return;
