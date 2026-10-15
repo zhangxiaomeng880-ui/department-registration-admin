@@ -6,6 +6,12 @@ on:
   pull_request:
     paths: [".github/workflows/ai-native-console-m31.yml", "apps/ai-native-console/**"]
   workflow_dispatch:
+    inputs:
+      run_staging_browser_smoke:
+        description: 'Contact real Railway staging, including one invalid login attempt'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 jobs:
@@ -24,8 +30,10 @@ jobs:
         run: |
           if grep -En "mockData|localStorage|sessionStorage|window[.]RUNTIME_API_TOKEN" apps/ai-native-console/public/app.js; then exit 1; fi
   browser-contract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 14
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/console-playwright
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,9 +45,35 @@ jobs:
       - name: Install Chromium
         working-directory: apps/ai-native-console
         run: npx playwright install --with-deps chromium
-      - name: Headless browser interactions with isolated contract data
+      - name: Run both isolated browser suites (loopback only)
         working-directory: apps/ai-native-console
-        run: node tests/browser.e2e.mjs
+        run: |
+          test "$(id -u)" -ne 0
+          node_bin="$(command -v node)"
+          # Fail closed if isolation or sandboxing is unavailable. No host network changes.
+          # Only this child network namespace gets loopback; the browsers run as the runner.
+          sudo unshare --net -- bash -euc '
+            ip link set lo up
+            test "$(ip -o link show | wc -l)" -eq 1
+            test -z "$(ip route show)"
+            runuser -u "$1" -- env -i HOME="$2" PATH="$(dirname "$3"):/usr/local/bin:/usr/bin:/bin" PLAYWRIGHT_BROWSERS_PATH="$4" "$3" tests/browser.e2e.mjs
+            runuser -u "$1" -- env -i HOME="$2" PATH="$(dirname "$3"):/usr/local/bin:/usr/bin:/bin" PLAYWRIGHT_BROWSERS_PATH="$4" "$3" tests/browser.systemization-a.mjs
+          ' _ "$(id -un)" "$HOME" "$node_bin" "$PLAYWRIGHT_BROWSERS_PATH"
+  staging-browser-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_staging_browser_smoke == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        working-directory: apps/ai-native-console
+        run: npm install --no-save --no-audit --no-fund playwright@1.56.1
+      - name: Install Chromium
+        working-directory: apps/ai-native-console
+        run: npx playwright install --with-deps chromium
       - name: Real staging browser shell (desktop and mobile; unauthenticated)
         working-directory: apps/ai-native-console
         run: node tests/staging-browser-smoke.mjs
