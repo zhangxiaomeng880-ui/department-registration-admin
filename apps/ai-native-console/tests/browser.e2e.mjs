@@ -26,7 +26,10 @@ let stages=[
 ];
 const reply=(body,status=200)=>({status,text:async()=>JSON.stringify(body)});
 const fakeRuntime=async(url,opt)=>{
- const parsed=new URL(url);requests.push({path:parsed.pathname,method:opt.method});
+ const parsed=new URL(url);
+ requests.push({origin:parsed.origin,path:parsed.pathname,method:opt.method});
+ assert.equal(parsed.origin,'https://runtime.test.invalid');
+ assert.equal(opt.method,'GET','legacy browser fixture only permits Runtime reads');
  assert.equal(opt.headers.authorization,'Bearer local-test-runtime-token');
  const path=parsed.pathname;
  if(path==='/api/runtime/workspaces')return reply({data:[{id:wsId,name:'独立 UI 测试空间'}]});
@@ -57,10 +60,15 @@ try{
  await page.goto(host+'/projects');
  await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
  assert.equal(await page.locator('#workspace').isVisible(),false);
- await page.locator('#loginMode').selectOption('shared');
+ assert.equal(await page.locator('#loginMode').inputValue(),'owner');
  await page.locator('#password').fill('local-playwright-password');
  await page.getByRole('button',{name:'进入工作台'}).click();
  await page.getByRole('heading',{name:'项目总览'}).waitFor();
+ const sessionResponse=await page.request.get(host+'/auth/session');
+ assert.equal(sessionResponse.status(),200);
+ const session=await sessionResponse.json();
+ assert.equal(session.mode,'owner');
+ assert.equal(session.writesEnabled,false);
  assert.equal(new URL(page.url()).pathname,'/projects');
  assert.equal(await page.locator('#projectScreen').isVisible(),false);
  await page.locator('#projectList').getByText('真实 API 形态样例（仅测试）').click();
@@ -68,7 +76,7 @@ try{
  await page.locator('#projectTitle').getByText('真实 API 形态样例（仅测试）').waitFor();
  assert.equal(await page.locator('#catalogScreen').isVisible(),false);
  await page.getByText('第一里程碑').waitFor();
- const go=async path=>{await page.locator('a[href="'+path+'"]').first().click();await page.waitForURL(u=>u.pathname===path);};
+ const go=async path=>{await page.locator('a[href="'+path+'"]:visible').first().click();await page.waitForURL(u=>u.pathname===path);};
  await go('/projects/'+pId+'/tasks');
  await page.getByText('测试资产检查').waitFor();
  await go('/projects/'+pId+'/tasks/'+tId);
@@ -94,9 +102,11 @@ try{
  await go('/projects/'+pId+'/assets/'+aId);
  await page.locator('#detailTitle').getByText('测试用造型母版').waitFor();
  await page.getByText('已登记源引用，待授权解析').waitFor();
- assert.equal(await page.getByRole('button',{name:'下载文件'}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'验证并获取下载入口'}).count(),0);
+ assert.equal(await page.locator('#detailRows a[href$="/content"]').count(),0);
  await page.goBack();await page.waitForURL('**/projects/'+pId+'/assets');
- await go('/projects/'+pId+'/data');await page.getByText('任务总数').waitFor();
+ await go('/projects/'+pId+'/data');await page.locator('#dataRows').getByText('WorkItem 总数',{exact:true}).waitFor();
+ await page.locator('#dataRows').getByText('未知（尚未接入执行态任务来源）',{exact:true}).waitFor();
  await go('/projects/'+pId+'/stages');
  await page.locator('#stageTable [data-stage-instance-id="stage-asset"]').getByRole('heading',{name:'6 · 正式资产与版本',exact:true}).waitFor();
  const structuralResult=page.locator('#aigcStageCheckResult');
@@ -142,7 +152,7 @@ try{
  assert.equal(await page.locator('#workspace').isVisible(),false);
  assert.ok(requests.some(x=>x.path.endsWith('/knowledge-bindings')));
  assert.ok(requests.some(x=>x.path.endsWith('/aigc-asset-system')));
- assert.ok(requests.every(x=>x.method==='GET'));
+ assert.ok(requests.every(x=>x.origin==='https://runtime.test.invalid'&&x.method==='GET'));
  console.log('M31_MULTI_PAGE_ROUTING_PASS global navigation, project tabs, task+asset detail, deep-link reload, back, logout');
 
 }finally{
