@@ -21,20 +21,23 @@ const tId='e1111111-2222-4333-8444-555555555555';
 let templateVersion='2.4',lifecycleUnavailable=false;
 let resolveDelayedReview=null;
 let stages=[
-  {stageKey:'AIGC_06_ASSET',displayName:'正式资产与版本',sequenceNo:6,status:'ACTIVE',lastGateResultId:null},
-  {stageKey:'AIGC_14_REVIEW',displayName:'数据复盘',sequenceNo:14,status:'PENDING',lastGateResultId:null}
+  {id:'stage-asset',stageKey:'AIGC_06_ASSET',displayName:'正式资产与版本',sequenceNo:6,status:'ACTIVE',lastGateResultId:null},
+  {id:'stage-review',stageKey:'AIGC_14_REVIEW',displayName:'数据复盘',sequenceNo:14,status:'PENDING',lastGateResultId:null}
 ];
 const reply=(body,status=200)=>({status,text:async()=>JSON.stringify(body)});
 const fakeRuntime=async(url,opt)=>{
- const parsed=new URL(url);requests.push({path:parsed.pathname,method:opt.method});
+ const parsed=new URL(url);
+ requests.push({origin:parsed.origin,path:parsed.pathname,method:opt.method});
+ assert.equal(parsed.origin,'https://runtime.test.invalid');
+ assert.equal(opt.method,'GET','legacy browser fixture only permits Runtime reads');
  assert.equal(opt.headers.authorization,'Bearer local-test-runtime-token');
  const path=parsed.pathname;
  if(path==='/api/runtime/workspaces')return reply({data:[{id:wsId,name:'独立 UI 测试空间'}]});
  if(path==='/api/runtime/project-types'||path==='/api/runtime/domain-presets'||path==='/api/runtime/aigc-modules')return reply({data:[]});
  if(path==='/api/runtime/capabilities')return reply({data:[{id:'tool1',name:'测试资源能力',capabilityType:'TOOL',status:'ACTIVE'}]});
  if(path==='/api/runtime/projects')return reply({data:{workspaceId:wsId,total:1,items:[{id:pId,name:'真实 API 形态样例（仅测试）',projectKey:'BROWSER_TEST_1',projectType:'AIGC_CONTENT',status:'ACTIVE',currentStageKey:'AIGC_06_ASSET',currentWorkflowVersion:'test-only',workflowTemplateId:'fixture-template'}]}});
- if(path.endsWith('/lifecycle'))return lifecycleUnavailable?reply({error:'TEST_LIFECYCLE_UNAVAILABLE'},503):reply({data:{project:{workflowTemplateId:'fixture-template'},template:{id:'fixture-template',templateKey:'STANDARD:AIGC_CONTENT_STANDARD',version:templateVersion},stages,milestones:[]}});
- if(path.endsWith('/governance'))return reply({data:{workItems:[{id:tId,itemKey:'TASK-01',title:'测试资产检查',itemType:'QA',status:'ACTIVE',priority:'P1'}],milestones:[{id:'ms-1',displayName:'第一里程碑',managementStatus:'ACTIVE',progressPercent:50}],risks:[]}});
+ if(path.endsWith('/lifecycle'))return lifecycleUnavailable?reply({error:'TEST_LIFECYCLE_UNAVAILABLE'},503):reply({data:{project:{id:pId,workflowTemplateId:'fixture-template'},template:{id:'fixture-template',templateKey:'STANDARD:AIGC_CONTENT_STANDARD',version:templateVersion},stages,milestones:[]}});
+ if(path.endsWith('/governance'))return reply({data:{project:{id:pId},iterations:[],dependencies:[],blockers:[],decisions:[],workItems:[{id:tId,itemKey:'TASK-01',title:'测试资产检查',itemType:'QA',status:'ACTIVE',priority:'P1'}],milestones:[{id:'ms-1',displayName:'第一里程碑',managementStatus:'ACTIVE',progressPercent:50}],risks:[]}});
  if(path.endsWith('/stage-transitions'))return reply({data:[]});
  if(path.endsWith('/audit-events'))return reply({data:{source:'AUDIT_LOGS_PRIMARY',items:[{id:'123',eventType:'READ_ONLY_AUDIT_TEST',actorKey:'browser-test'}]}});
  if(path.endsWith('/audit-evidence'))return reply({data:{items:[]}});
@@ -51,16 +54,21 @@ const fakeRuntime=async(url,opt)=>{
 const server=createConsoleServer({env,fetchImpl:fakeRuntime});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const host='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+const browser=await chromium.launch({headless:true,chromiumSandbox:true});
 const page=await browser.newPage({viewport:{width:1280,height:800}});
 try{
  await page.goto(host+'/projects');
  await page.getByRole('heading',{name:'连接你的真实项目'}).waitFor();
  assert.equal(await page.locator('#workspace').isVisible(),false);
- await page.locator('#loginMode').selectOption('shared');
+ assert.equal(await page.locator('#loginMode').inputValue(),'owner');
  await page.locator('#password').fill('local-playwright-password');
  await page.getByRole('button',{name:'进入工作台'}).click();
  await page.getByRole('heading',{name:'项目总览'}).waitFor();
+ const sessionResponse=await page.request.get(host+'/auth/session');
+ assert.equal(sessionResponse.status(),200);
+ const session=await sessionResponse.json();
+ assert.equal(session.mode,'owner');
+ assert.equal(session.writesEnabled,false);
  assert.equal(new URL(page.url()).pathname,'/projects');
  assert.equal(await page.locator('#projectScreen').isVisible(),false);
  await page.locator('#projectList').getByText('真实 API 形态样例（仅测试）').click();
@@ -68,7 +76,7 @@ try{
  await page.locator('#projectTitle').getByText('真实 API 形态样例（仅测试）').waitFor();
  assert.equal(await page.locator('#catalogScreen').isVisible(),false);
  await page.getByText('第一里程碑').waitFor();
- const go=async path=>{await page.locator('a[href="'+path+'"]').first().click();await page.waitForURL(u=>u.pathname===path);};
+ const go=async path=>{await page.locator('a[href="'+path+'"]:visible').first().click();await page.waitForURL(u=>u.pathname===path);};
  await go('/projects/'+pId+'/tasks');
  await page.getByText('测试资产检查').waitFor();
  await go('/projects/'+pId+'/tasks/'+tId);
@@ -94,15 +102,17 @@ try{
  await go('/projects/'+pId+'/assets/'+aId);
  await page.locator('#detailTitle').getByText('测试用造型母版').waitFor();
  await page.getByText('已登记源引用，待授权解析').waitFor();
- assert.equal(await page.getByRole('button',{name:'下载文件'}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'验证并获取下载入口'}).count(),0);
+ assert.equal(await page.locator('#detailRows a[href$="/content"]').count(),0);
  await page.goBack();await page.waitForURL('**/projects/'+pId+'/assets');
- await go('/projects/'+pId+'/data');await page.getByText('任务总数').waitFor();
+ await go('/projects/'+pId+'/data');await page.locator('#dataRows').getByText('WorkItem 总数',{exact:true}).waitFor();
+ await page.locator('#dataRows').getByText('未知（尚未接入执行态任务来源）',{exact:true}).waitFor();
  await go('/projects/'+pId+'/stages');
- await page.locator('#stageTable').getByText('正式资产与版本',{exact:true}).waitFor();
+ await page.locator('#stageTable [data-stage-instance-id="stage-asset"]').getByRole('heading',{name:'6 · 正式资产与版本',exact:true}).waitFor();
  const structuralResult=page.locator('#aigcStageCheckResult');
  await structuralResult.filter({hasText:'当前真实阶段 2/15'}).waitFor();
  const keys=['AIGC_00_INIT','AIGC_01_DISCOVERY','AIGC_02_PLAN','AIGC_03_SCRIPT','AIGC_04_BREAKDOWN','AIGC_05_FORMAT','AIGC_06_ASSET','AIGC_07_IMAGE','AIGC_08_VIDEO_AUDIO','AIGC_09_EDIT','AIGC_10_MASTER','AIGC_11_DERIVATION','AIGC_12_PUBLISH','AIGC_13_PERFORMANCE','AIGC_14_REVIEW'];
- stages=keys.map((stageKey,i)=>({stageKey,sequenceNo:i+1,displayName:'测试阶段 '+(i+1),status:'PENDING',lastGateResultId:null}));
+ stages=keys.map((stageKey,i)=>({id:'stage-'+i,stageKey,sequenceNo:i+1,displayName:'测试阶段 '+(i+1),status:'PENDING',lastGateResultId:null}));
  await page.locator('#refreshProject').click();
  await structuralResult.filter({hasText:'结构通过：真实工作流 15/15'}).waitFor();
  stages[9]={...stages[9],stageKey:'AIGC_08_VIDEO_AUDIO'};
@@ -119,9 +129,10 @@ try{
  await structuralResult.filter({hasText:'结构通过：真实工作流 15/15'}).waitFor();
  lifecycleUnavailable=true;
  await page.locator('#refreshProject').click();
- await structuralResult.filter({hasText:'模板身份或版本'}).waitFor();
- await page.locator('#notice').filter({hasText:'TEST_LIFECYCLE_UNAVAILABLE'}).waitFor();
- assert.equal(await page.locator('#stageTable .gridrow').count(),0,'failed new lifecycle cannot display stale PASS stage rows');
+ await structuralResult.filter({hasText:'结构尚未核验：读取失败：TEST_LIFECYCLE_UNAVAILABLE'}).waitFor();
+ await page.locator('#stageTable[data-read-state="error"]').filter({hasText:'TEST_LIFECYCLE_UNAVAILABLE'}).waitFor();
+ assert.doesNotMatch(await structuralResult.textContent(),/结构通过/,'failed lifecycle must not retain structure PASS');
+ assert.equal(await page.locator('#stageTable [data-stage-instance-id]').count(),0,'failed new lifecycle cannot display stale PASS stage rows');
  lifecycleUnavailable=false;
  console.log('M31_AIGC_15_STAGE_STRUCTURE_TEST_PASS 2/15=HOLD, duplicate=HOLD, wrong-version=HOLD, upstream-failure=HOLD, exact ordered 15=PASS');
  await go('/projects/'+pId+'/audit');await page.getByText('READ_ONLY_AUDIT_TEST').waitFor();
@@ -141,7 +152,7 @@ try{
  assert.equal(await page.locator('#workspace').isVisible(),false);
  assert.ok(requests.some(x=>x.path.endsWith('/knowledge-bindings')));
  assert.ok(requests.some(x=>x.path.endsWith('/aigc-asset-system')));
- assert.ok(requests.every(x=>x.method==='GET'));
+ assert.ok(requests.every(x=>x.origin==='https://runtime.test.invalid'&&x.method==='GET'));
  console.log('M31_MULTI_PAGE_ROUTING_PASS global navigation, project tabs, task+asset detail, deep-link reload, back, logout');
 
 }finally{
