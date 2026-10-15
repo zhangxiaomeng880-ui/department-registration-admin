@@ -32,13 +32,14 @@ jobs:
   browser-contract:
     runs-on: ubuntu-22.04
     timeout-minutes: 14
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/console-playwright
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Set isolated browser cache location
+        run: |
+          printf 'PLAYWRIGHT_BROWSERS_PATH=%s/console-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: Install isolated browser test dependencies
         working-directory: apps/ai-native-console
         run: npm install --no-save --no-audit --no-fund playwright@1.56.1
