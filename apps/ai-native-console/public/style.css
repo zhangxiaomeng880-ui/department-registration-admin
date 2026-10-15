@@ -52,3 +52,30 @@ a{color:inherit;text-decoration:none}
  .tabs{gap:14px}
  .statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Console A0–A4: local project source, plan and stage hierarchy. */
+:is(#overview,#tasks,#stages) .project-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:22px 0}
+:is(#overview,#tasks,#stages) .project-sources>section{min-width:0;padding:18px;border:1px solid #e5eaf1;border-radius:10px;background:#fafbfd}
+:is(#overview,#tasks,#stages) h3{font-size:14px;line-height:1.5;margin:0 0 10px;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) h4{font-size:13px;margin:16px 0 10px;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) .project-section{margin-top:30px;padding-top:22px;border-top:1px solid #e5eaf1}
+:is(#overview,#tasks,#stages) .overview-links{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+:is(#overview,#tasks,#stages) .project-record,:is(#overview,#tasks,#stages) .stage-record,#detailRows[data-detail-kind="tasks"] .project-record{padding:18px 0;border-bottom:1px solid #e5eaf1;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) .stage-record[data-current-stage="true"]{border-left:3px solid #315bea;padding-left:16px}
+:is(#overview,#tasks,#stages) .event,#detailRows[data-detail-kind="tasks"] .event{gap:16px;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) .event>span,#detailRows[data-detail-kind="tasks"] .event>span{max-width:65%;text-align:right}
+:is(#overview,#tasks,#stages) .plan-group{margin:22px 0;padding:18px;border:1px solid #e3e8f0;border-radius:10px}
+:is(#overview,#tasks,#stages) .iteration-group{margin-top:16px}
+:is(#overview,#tasks,#stages) .iteration-group>small{display:block;margin-bottom:10px}
+:is(#overview,#tasks,#stages) .dependency-endpoint,#detailRows[data-detail-kind="tasks"] .dependency-endpoint{margin:10px 0;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) .inline-link,#detailRows[data-detail-kind="tasks"] .inline-link{color:#315bea;text-decoration:underline;text-underline-offset:3px}
+:is(#overview,#tasks,#stages) .source-comparison{padding:10px 14px;border-radius:8px;background:#f2f5fa}
+:is(#overview,#tasks,#stages) .source-comparison[data-read-state="mismatch"]{background:#fff5e5;border:1px solid #edd29d}
+:is(#overview,#tasks,#stages) [data-read-state="forbidden"]{border-left:3px solid #b26637;padding-left:12px}
+#governanceHealth[data-health="RED"]{color:#b34337}#governanceHealth[data-health="AMBER"]{color:#8c681f}#governanceHealth[data-health="GREEN"]{color:#257153}
+:is(#overview,#tasks,#stages) .transition-group{margin:22px 0}
+:is(#overview,#tasks,#stages) .transition-record{border:1px solid #e0e7f0;border-radius:9px;padding:14px;margin:10px 0}
+:is(#overview,#tasks,#stages) .transition-record summary{cursor:pointer;line-height:1.7;overflow-wrap:anywhere}
+:is(#overview,#tasks,#stages) .evidence-json{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:#f4f6fa;border-radius:8px;padding:14px;max-height:400px;overflow:auto;font-size:12px}
+:is(#overview,#tasks,#stages) a:focus-visible,:is(#overview,#tasks,#stages) button:focus-visible,:is(#overview,#tasks,#stages) summary:focus-visible,#detailRows[data-detail-kind="tasks"] a:focus-visible,#detailRows[data-detail-kind="tasks"] button:focus-visible{outline:3px solid #315bea;outline-offset:4px}
+@media(max-width:650px){:is(#overview,#tasks,#stages) .project-sources{grid-template-columns:1fr}:is(#overview,#tasks,#stages) .plan-group{padding:12px}:is(#overview,#tasks,#stages) .event,#detailRows[data-detail-kind="tasks"] .event{flex-direction:column;gap:6px}:is(#overview,#tasks,#stages) .event>span,#detailRows[data-detail-kind="tasks"] .event>span{max-width:100%;text-align:left}:is(#overview,#tasks,#stages).panel{padding:18px}}

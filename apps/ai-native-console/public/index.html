@@ -23,7 +23,7 @@
   <label>当前密码<input id="currentPassword" type="password" autocomplete="current-password" required></label>
   <label>新密码<input id="newPassword" type="password" autocomplete="new-password" minlength="12" required></label>
   <label>确认新密码<input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required></label>
-  <p id="accountError" class="error" role="alert"></p><button class="primary full" type="submit">确认修改</button>
+  <p id="accountError" class="error" role="alert"></p><button id="accountSubmit" class="primary full" type="submit">确认修改</button>
 </form></dialog>
 <div id="workspace" class="shell" hidden>
   <aside class="side">
@@ -56,30 +56,51 @@
     </section>
     <section id="projectScreen" class="page-screen" hidden>
       <div class="backline"><a href="/projects" data-nav>← 项目列表</a></div>
-      <div class="mainhead"><div><div class="eyebrow">PROJECT WORKSPACE</div><h1 id="projectTitle">项目工作空间</h1><p id="projectMeta">读取中</p></div>
+      <div class="mainhead"><div><div class="eyebrow">PROJECT WORKSPACE</div><h1 id="projectTitle">项目工作空间</h1><p id="projectMeta">读取中</p><p id="projectHeaderState" class="muted" role="status"></p></div>
         <button id="refreshProject" class="outline">↻ 刷新当前项目</button></div>
       <div id="projectBody">
         <div class="tabs" role="navigation" aria-label="项目内导航">
           <a class="tab" data-nav data-panel="overview">概览</a>
-          <a class="tab" data-nav data-panel="tasks">任务</a>
+          <a class="tab" data-nav data-panel="tasks">计划 · WorkItems</a>
           <a class="tab" data-nav data-panel="assets">资产</a>
           <a class="tab" data-nav data-panel="data">数据</a>
-          <a class="tab" data-nav data-panel="stages">阶段与 Gate</a>
+          <a class="tab" data-nav data-panel="stages">执行 · 阶段信息</a>
           <a class="tab" data-nav data-panel="audit">审计证据</a>
         </div>
         <section id="overview" class="panel" hidden>
-          <h2>项目概览</h2><p class="muted">所有状态、里程碑和任务数量均取自 Runtime。</p>
-          <div class="statgrid"><div class="stat"><label>项目状态</label><strong id="projectStatus">—</strong></div><div class="stat"><label>当前阶段</label><strong id="currentStage">—</strong></div><div class="stat"><label>工作流版本</label><strong id="workflowVersion">—</strong></div><div class="stat"><label>阶段总数</label><strong id="stageCount">—</strong></div></div>
-          <h2>真实里程碑</h2><div id="milestones"></div>
+          <h2>项目概览</h2><p class="muted">治理、生命周期分别读取；WorkItem 不等于 Runtime Task。里程碑进度为服务端返回值，不合成项目总体进度。</p>
+          <div class="statgrid project-facts">
+            <div class="stat"><label>项目状态 · Governance</label><strong id="projectStatus">—</strong></div>
+            <div class="stat"><label>治理健康 · Governance</label><strong id="governanceHealth">未知</strong></div>
+            <div class="stat"><label>当前阶段 · Lifecycle</label><strong id="currentStage">未知</strong></div>
+            <div class="stat"><label>工作流版本 · Lifecycle</label><strong id="workflowVersion">未知</strong></div>
+          </div>
+          <div class="project-sources">
+            <section><h3>治理来源</h3><p>当前阶段：<span id="governanceStage">未知</span></p><div id="governanceSummary" aria-live="polite"></div></section>
+            <section><h3>生命周期来源</h3><p>当前阶段：<span id="lifecycleStage">未知</span> · 阶段数：<span id="stageCount">—</span></p><div id="lifecycleSummary" aria-live="polite"></div></section>
+          </div>
+          <div id="sourceComparison" class="source-comparison" role="status"></div>
+          <div class="overview-links"><a id="overviewPlanLink" data-nav class="outline">查看计划 →</a><a id="overviewStagesLink" data-nav class="outline">查看阶段 →</a></div>
+          <div class="project-sources">
+            <section><h2>项目治理阻塞</h2><div id="governanceBlockers" aria-live="polite"></div></section>
+            <section><h2>阶段阻塞原因</h2><div id="stageBlockers" aria-live="polite"></div></section>
+          </div>
+          <section class="project-section"><h2>治理决策</h2><p class="muted">保留服务端原状态；未把所有记录判为待决。</p><div id="governanceDecisions" aria-live="polite"></div></section>
+          <section class="project-section"><h2>真实里程碑</h2><div id="milestones" aria-live="polite"></div></section>
         </section>
-        <section id="tasks" class="panel" hidden><h2>项目任务</h2><p class="muted">任务来自服务端 Governance，点击可进入可分享的任务详情页。</p><div id="taskRows"></div></section>
+        <section id="tasks" class="panel" hidden><h2>计划 · 项目 WorkItems</h2><p class="muted">治理工作项来自 Governance workItems / project_work_items，包含 itemType=TASK；不是执行态 Runtime Task。按同次返回的正式里程碑 ID、迭代 ID 分组。Runtime Task / Run 关联未知，stageKey 仅表示阶段归属。</p><div id="taskRows" aria-live="polite"></div><section class="project-section"><h2>计划依赖</h2><p class="muted">仅核验本项目已返回对象的类型与 ID；未知对象保持引用文字，不推导排期。</p><div id="planDependencies" aria-live="polite"></div></section></section>
         <section id="assets" class="panel" hidden>
           <h2>项目资产</h2><p class="muted">使用正式资产与版本 ID；未验证文件提供商之前不提供虚假的打开按钮。</p>
           <label class="domain-picker">阶段领域详情<select id="domainSelect" aria-label="读取阶段真实领域数据"></select></label>
           <div id="modules"></div>
         </section>
-        <section id="data" class="panel" hidden><h2>项目数据</h2><p class="muted">统计只基于实际接口返回的项目、任务、里程碑数据。</p><div id="dataRows"></div></section>
-        <section id="stages" class="panel" hidden><h2>阶段与 Gate</h2><p class="muted">工作流实例来自 Runtime，未绑定时明确显示未绑定。</p><div id="aigcStageCheck" class="stage-check" hidden><h3>AIGC 15 阶段结构验收</h3><p id="aigcStageCheckResult" role="status"></p><p class="muted">仅核对正式工作流实例，不替代单阶段 Gate、生成任务、发布或效果回收的真实验收。</p></div><div id="stageTable"></div><h2>阶段执行记录</h2><div id="transitions"></div></section>
+        <section id="data" class="panel" hidden><h2>项目数据</h2><p class="muted">WorkItem 统计仅基于实际治理数据；Runtime Task 数量及 Run 关联未接入时显示未知。</p><div id="dataRows"></div></section>
+        <section id="stages" class="panel" hidden>
+          <h2>执行 · 阶段信息</h2><p class="muted">阶段主体来自 Lifecycle。Agent 为阶段配置，Gate ID 为结果引用；不表示 Agent 正在运行或 Gate 已通过。</p>
+          <div id="aigcStageCheck" class="stage-check" hidden><h3>AIGC 15 阶段结构验收</h3><p id="aigcStageCheckResult" role="status"></p><p class="muted">仅核对正式工作流实例，不替代单阶段 Gate、生成任务、发布或效果回收的真实验收。</p></div>
+          <div id="stageTable" aria-live="polite"></div>
+          <section class="project-section"><h2>阶段变更证据</h2><p class="muted">独立读取权限：run:read，以后端当前身份及项目范围授权为准。仅展示本次接口返回内容，按创建时间升序，limit=50，可能截断；不代表全量历史。归属仅按阶段实例 ID 核验，历史 decision 不代表当前允许操作。</p><div id="transitions" aria-live="polite"></div></section>
+        </section>
         <section id="audit" class="panel" hidden><h2>项目原始审计</h2><p class="muted">直接读取 Runtime audit_logs。</p><div id="liveAuditRows"></div>
           <h2>工作空间审计索引</h2><p class="muted">M30 索引可能晚于原始记录。</p><div id="auditRows"></div>
         </section>
@@ -99,7 +120,7 @@
   <label>项目 Key<input id="createKey" pattern="[A-Za-z0-9_-]{3,80}" placeholder="如 MY_AIGC_PROJECT" required></label>
   <label>项目类型<select id="createType" required><option value="PRODUCT_DEVELOPMENT">产品研发</option><option value="AIGC_CONTENT">AIGC 内容生产</option></select></label>
   <label>正式工作流预设<select id="createPreset"><option value="">不自动绑定</option></select></label>
-  <p id="createError" class="error" role="alert"></p><button class="primary full" type="submit">确认写入预发数据库</button>
+  <p id="createError" class="error" role="alert"></p><button id="createSubmit" class="primary full" type="submit">确认写入预发数据库</button>
 </form></dialog>
 <script type="module" src="/app.js"></script>
 </body></html>

@@ -13,6 +13,8 @@ const headers={
   'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
   'x-frame-options':'DENY','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
 };
+// The static main Console shell contains no user data. Sensitive JSON and files keep no-store.
+const shellHeaders={...headers,'cache-control':'private, no-cache'};
 const error=(code,status=400)=>Object.assign(new Error(code),{status,code});
 const json=(res,status,data,extra={})=>{res.writeHead(status,{...headers,'content-type':'application/json; charset=utf-8',...extra});res.end(JSON.stringify(data));};
 const equals=(a,b)=>{const x=createHash('sha256').update(a).digest(),y=createHash('sha256').update(b).digest();return timingSafeEqual(x,y);};
@@ -259,11 +261,11 @@ export const createConsoleServer=({env=process.env,fetchImpl=fetch}={})=>{
       // load the same authenticated shell, never a fabricated project snapshot.
       if(req.method==='GET'&&(['/projects','/capabilities','/knowledge'].includes(path)||new RegExp('^/projects/[A-Za-z0-9-]{1,64}(/(overview|tasks|assets|data|stages|audit)(/[A-Za-z0-9-]{1,64})?)?'+String.fromCharCode(36)).test(path))){
         const bytes=await readFile(join(root,'public','index.html'));
-        res.writeHead(200,{...headers,'content-type':MIME['/']});return res.end(bytes);
+        res.writeHead(200,{...shellHeaders,'content-type':MIME['/']});return res.end(bytes);
       }
       if(req.method==='GET'&&ASSETS[path]){
         const bytes=await readFile(join(root,'public',ASSETS[path]));
-        res.writeHead(200,{...headers,'content-type':MIME[path]});return res.end(bytes);
+        res.writeHead(200,{...(path==='/'||path==='/index.html'?shellHeaders:headers),'content-type':MIME[path]});return res.end(bytes);
       }
       throw error('NOT_FOUND',404);
     }catch(e){return json(res,e.status||502,{error:e.code||'UPSTREAM_UNAVAILABLE'});}
